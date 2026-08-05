@@ -30,7 +30,7 @@
 In this lab, we take a **Legacy Struts 1.3** application (no documentation available) and perform:
 
 - **Reverse Engineer** the legacy code to generate comprehensive documentation, architecture diagrams, ER diagrams, and UML diagrams.
-- Use Bob's **`/java-upgrade` skill** with OpenRewrite AST recipes to upgrade Java from 1.8 → 17 — no premium package required.
+- Use Bob's **`/java-upgrade` skill** with OpenRewrite AST recipes to upgrade Java from 1.8 → 17.
 - Use a custom **'Modernization Architect'** mode to modernize the legacy Struts application to a cloud-native Spring Boot application.
 - **Generate** required OpenShift artifacts and scripts for deployment.
 
@@ -121,7 +121,7 @@ Complete journey from legacy **Struts 1.x + SQLite** to modern **Spring Boot 3.x
 ---
 
 ### 4.3 Java Version Upgrade
-**Objective:** Upgrade to Java 17 using Bob natively — no premium package needed.
+**Objective:** Upgrade to Java 17 using Bob's `/java-upgrade` skill.
 
 > **How this works:** The `.bob/skills/java-upgrade/SKILL.md` skill in this repo teaches Bob to run OpenRewrite AST recipes via `mvn`, fix dependency conflicts, validate the build, and generate a Mermaid audit flowchart — all using Bob's built-in `read_file`, `apply_diff`, and `execute_command` capabilities.
 
