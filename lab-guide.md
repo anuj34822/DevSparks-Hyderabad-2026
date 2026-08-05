@@ -181,11 +181,4 @@ Type: *"Complete remaining tasks from the todo list"* to resume exactly where it
 
 ---
 
-## References
-
-- **Lab Repository:** https://github.com/anuj34822/java-modernization-lab
-- **Bob Innovation Hub:** https://ibm-self-serve-assets.github.io/bob-innovation-hub/#/use-cases/java-modernization
-- **Bob IDE Install:** https://bob.ibm.com/docs/ide/getting-started/install
-
----
 
