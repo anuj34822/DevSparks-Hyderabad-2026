@@ -63,7 +63,7 @@ sudo dnf install maven            # RHEL
 
 ### Step 4.1 — Import Project into Bob Workspace
 
-1. Download/clone: `https://github.com/ibm-self-serve-assets/java-modernization-lab`
+1. Download/clone: `https://github.com/anuj34822/java-modernization-lab`
 2. Open Bob IDE → **File → Open Folder** → select `java-modernization-lab`
 3. Confirm Explorer shows: `.bob/`, `images/`, `legacy-netbanking/`, `lab-guide.md`
 
@@ -138,8 +138,8 @@ sudo dnf install maven            # RHEL
 
 | Problem | Fix |
 |---|---|
+| `mvn` not installed | `brew install maven` (macOS) · `sudo apt install maven` (Ubuntu) · `sudo dnf install maven` (RHEL) |
 | SDKMAN not installed | Switch to **Advanced** mode → type `"Install SDKMAN"` |
-| "Java Modernization" not visible | Close all open tasks and restart Bob IDE |
 | Build failure / error during migration | Click the **"Fix it"** button next to the error |
 | Bob stops mid-way (context limit) | Type: `"Complete remaining tasks from the todo list"` |
 
@@ -147,11 +147,10 @@ sudo dnf install maven            # RHEL
 
 ## References
 
-- **Lab Repository:** https://github.com/ibm-self-serve-assets/java-modernization-lab
-- **Full Lab Guide:** `lab-guide.md` in the repository root
+- **Lab Repository:** https://github.com/anuj34822/java-modernization-lab
+- **Full Lab Guide:** `lab-guide.md` in this repository
 - **Bob Innovation Hub:** https://ibm-self-serve-assets.github.io/bob-innovation-hub/#/use-cases/java-modernization
 - **Bob IDE Install:** https://bob.ibm.com/docs/ide/getting-started/install
-- **Lab Author:** Anand Awasthi — anand.awasthi@in.ibm.com
 
 ---
 

@@ -28,5 +28,5 @@ Transform a **Legacy Struts 1.3 + Java 8 + SQLite** application into a modern **
 - PlantUML Markdown Preview extension in Bob IDE
 
 ## References
-- Bob Innovation Hub: `https://ibm-self-serve-assets.github.io/bob-innovation-hub/#/use-cases/java-modernization`
-- Original lab source: `https://github.com/ibm-self-serve-assets/java-modernization-lab`
+- Bob Innovation Hub: https://ibm-self-serve-assets.github.io/bob-innovation-hub/#/use-cases/java-modernization
+- Bob IDE Install: https://bob.ibm.com/docs/ide/getting-started/install
