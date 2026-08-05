@@ -9,7 +9,7 @@
 1. [About this Lab](#1-about-this-lab)
 2. [Pre-requisites](#2-pre-requisites)
 3. [Overview](#3-overview)
-4. [Lab Steps](#4-lab-steps)
+4. [Hands-on Lab Steps](#4-hands-on-lab-steps)
    - 4.1 [Import Project into Bob Workspace](#41-import-project-into-bob-workspace)
    - 4.2 [Reverse Engineering – Understanding the Legacy Application](#42-reverse-engineering--understanding-the-legacy-application)
    - 4.3 [Java Version Upgrade](#43-java-version-upgrade)
@@ -97,7 +97,7 @@ Complete journey from legacy **Struts 1.x + SQLite** to modern **Spring Boot 3.x
 
 ---
 
-## 4. Lab Steps
+## 4. Hands-on Lab Steps
 
 ### 4.1 Import Project into Bob Workspace
 
