@@ -1,0 +1,1133 @@
+<spring_boot_best_practices>
+  <overview>
+    Best practices and conventions for building enterprise-grade Spring Boot applications
+    during the modernization process. These guidelines ensure code quality, maintainability,
+    and adherence to Spring Boot standards.
+  </overview>
+
+  <project_structure>
+    <principle>
+      <name>Package Organization by Layer</name>
+      <description>
+        Organize code by architectural layers, not by features
+      </description>
+      <structure>
+        <![CDATA[
+com.abcbank/
+├── controller/          # Presentation layer
+│   ├── AccountController.java
+│   ├── TransactionController.java
+│   └── TransferController.java
+├── service/            # Business logic layer
+│   ├── AccountService.java
+│   ├── TransactionService.java
+│   └── TransferService.java
+├── repository/         # Data access layer
+│   ├── AccountRepository.java
+│   ├── TransactionRepository.java
+│   └── UserRepository.java
+├── model/             # Domain entities
+│   ├── Account.java
+│   ├── Transaction.java
+│   └── User.java
+├── dto/               # Data Transfer Objects
+│   ├── request/
+│   │   ├── LoginRequest.java
+│   │   └── TransferRequest.java
+│   └── response/
+│       ├── AccountResponse.java
+│       └── TransferResponse.java
+├── config/            # Configuration classes
+│   ├── SecurityConfig.java
+│   └── DatabaseConfig.java
+├── exception/         # Custom exceptions
+│   ├── AccountNotFoundException.java
+│   ├── InsufficientFundsException.java
+│   └── GlobalExceptionHandler.java
+└── AbcBankApplication.java
+        ]]>
+      </structure>
+    </principle>
+  </project_structure>
+
+  <dependency_management>
+    <principle>
+      <name>Use Spring Boot Starter Dependencies</name>
+      <description>
+        Leverage Spring Boot starters for consistent dependency versions
+      </description>
+      <required_dependencies>
+        <![CDATA[
+<dependencies>
+    <!-- Spring Boot Starters -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+    
+    <!-- Thymeleaf (if server-side rendering) -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-thymeleaf</artifactId>
+    </dependency>
+    
+    <!-- Database -->
+    <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <scope>runtime</scope>
+    </dependency>
+    
+    <!-- Utilities -->
+    <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <optional>true</optional>
+    </dependency>
+    
+    <!-- Testing -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.security</groupId>
+        <artifactId>spring-security-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+        ]]>
+      </required_dependencies>
+    </principle>
+
+    <principle>
+      <name>Java 17 Configuration</name>
+      <description>
+        Configure Maven for Java 17 and Spring Boot 3.x
+      </description>
+      <configuration>
+        <![CDATA[
+<properties>
+    <java.version>17</java.version>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+</properties>
+
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.2.0</version>
+    <relativePath/>
+</parent>
+        ]]>
+      </configuration>
+    </principle>
+  </dependency_management>
+
+  <entity_design>
+    <principle>
+      <name>Proper JPA Entity Annotations</name>
+      <description>
+        Use appropriate JPA annotations for entity mapping
+      </description>
+      <example>
+        <![CDATA[
+@Entity
+@Table(name = "accounts")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Account {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(name = "account_number", nullable = false, unique = true, length = 20)
+    private String accountNumber;
+    
+    @Column(name = "account_type", nullable = false, length = 20)
+    @Enumerated(EnumType.STRING)
+    private AccountType accountType;
+    
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal balance;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+    
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Transaction> transactions = new ArrayList<>();
+    
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at")
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+    
+    @Version
+    private Long version; // Optimistic locking
+}
+        ]]>
+      </example>
+    </principle>
+
+    <principle>
+      <name>Use BigDecimal for Money</name>
+      <description>
+        Always use BigDecimal for monetary values, never float or double
+      </description>
+      <rationale>
+        Floating-point arithmetic can introduce rounding errors in financial calculations
+      </rationale>
+      <good>
+        <![CDATA[
+@Column(nullable = false, precision = 15, scale = 2)
+private BigDecimal balance;
+
+// Calculations
+BigDecimal newBalance = currentBalance.add(amount);
+BigDecimal difference = balance1.subtract(balance2);
+        ]]>
+      </good>
+      <bad>
+        <![CDATA[
+private double balance; // NEVER use double for money!
+        ]]>
+      </bad>
+    </principle>
+
+    <principle>
+      <name>Implement equals() and hashCode()</name>
+      <description>
+        Properly implement equals and hashCode for entities
+      </description>
+      <example>
+        <![CDATA[
+@Override
+public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof Account)) return false;
+    Account account = (Account) o;
+    return accountNumber != null && accountNumber.equals(account.accountNumber);
+}
+
+@Override
+public int hashCode() {
+    return getClass().hashCode();
+}
+        ]]>
+      </example>
+      <note>
+        Or use Lombok's @EqualsAndHashCode(onlyExplicitlyIncluded = true) with @EqualsAndHashCode.Include on business key
+      </note>
+    </principle>
+  </entity_design>
+
+  <repository_layer>
+    <principle>
+      <name>Use Spring Data JPA Repositories</name>
+      <description>
+        Leverage Spring Data JPA for data access
+      </description>
+      <example>
+        <![CDATA[
+@Repository
+public interface AccountRepository extends JpaRepository<Account, Long> {
+    
+    // Query methods derived from method name
+    Optional<Account> findByAccountNumber(String accountNumber);
+    
+    List<Account> findByUserId(Long userId);
+    
+    boolean existsByAccountNumber(String accountNumber);
+    
+    // Custom query with @Query
+    @Query("SELECT a FROM Account a WHERE a.user.id = :userId AND a.accountType = :type")
+    List<Account> findUserAccountsByType(@Param("userId") Long userId, 
+                                         @Param("type") AccountType type);
+    
+    // Native query when needed
+    @Query(value = "SELECT * FROM accounts WHERE balance > :minBalance", nativeQuery = true)
+    List<Account> findAccountsWithMinBalance(@Param("minBalance") BigDecimal minBalance);
+    
+    // Projection for specific fields
+    @Query("SELECT new com.abcbank.dto.AccountSummary(a.accountNumber, a.balance) " +
+           "FROM Account a WHERE a.user.id = :userId")
+    List<AccountSummary> findAccountSummariesByUserId(@Param("userId") Long userId);
+}
+        ]]>
+      </example>
+    </principle>
+
+    <principle>
+      <name>Avoid N+1 Query Problems</name>
+      <description>
+        Use JOIN FETCH or EntityGraph to avoid N+1 queries
+      </description>
+      <example>
+        <![CDATA[
+// Using JOIN FETCH
+@Query("SELECT a FROM Account a JOIN FETCH a.user WHERE a.id = :id")
+Optional<Account> findByIdWithUser(@Param("id") Long id);
+
+// Using EntityGraph
+@EntityGraph(attributePaths = {"user", "transactions"})
+@Query("SELECT a FROM Account a WHERE a.id = :id")
+Optional<Account> findByIdWithDetails(@Param("id") Long id);
+        ]]>
+      </example>
+    </principle>
+  </repository_layer>
+
+  <service_layer>
+    <principle>
+      <name>Use @Transactional Appropriately</name>
+      <description>
+        Apply @Transactional at the service layer for business operations
+      </description>
+      <guidelines>
+        <guideline>Place @Transactional on service methods, not repository methods</guideline>
+        <guideline>Use readOnly = true for read-only operations</guideline>
+        <guideline>Specify rollbackFor for checked exceptions if needed</guideline>
+        <guideline>Keep transactions as short as possible</guideline>
+      </guidelines>
+      <example>
+        <![CDATA[
+@Service
+@Transactional
+@Slf4j
+public class TransferService {
+    
+    private final AccountRepository accountRepository;
+    private final TransactionRepository transactionRepository;
+    
+    @Transactional(readOnly = true)
+    public List<AccountDTO> getUserAccounts(Long userId) {
+        log.debug("Fetching accounts for user: {}", userId);
+        return accountRepository.findByUserId(userId)
+            .stream()
+            .map(this::convertToDTO)
+            .collect(Collectors.toList());
+    }
+    
+    @Transactional(rollbackFor = Exception.class)
+    public TransferResponse executeTransfer(TransferRequest request) {
+        log.info("Executing transfer: {} -> {}, amount: {}", 
+            request.getFromAccount(), request.getToAccount(), request.getAmount());
+        
+        // Validate and execute transfer
+        Account fromAccount = accountRepository
+            .findByAccountNumber(request.getFromAccount())
+            .orElseThrow(() -> new AccountNotFoundException("Source account not found"));
+            
+        Account toAccount = accountRepository
+            .findByAccountNumber(request.getToAccount())
+            .orElseThrow(() -> new AccountNotFoundException("Destination account not found"));
+        
+        validateTransfer(fromAccount, request.getAmount());
+        
+        // Perform transfer
+        fromAccount.setBalance(fromAccount.getBalance().subtract(request.getAmount()));
+        toAccount.setBalance(toAccount.getBalance().add(request.getAmount()));
+        
+        // Create transaction records
+        Transaction debit = createTransaction(fromAccount, request.getAmount().negate(), "DEBIT");
+        Transaction credit = createTransaction(toAccount, request.getAmount(), "CREDIT");
+        
+        accountRepository.saveAll(List.of(fromAccount, toAccount));
+        transactionRepository.saveAll(List.of(debit, credit));
+        
+        log.info("Transfer completed successfully");
+        return new TransferResponse(true, "Transfer successful");
+    }
+    
+    private void validateTransfer(Account account, BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidAmountException("Amount must be positive");
+        }
+        if (account.getBalance().compareTo(amount) < 0) {
+            throw new InsufficientFundsException("Insufficient balance");
+        }
+    }
+}
+        ]]>
+      </example>
+    </principle>
+
+    <principle>
+      <name>Use DTOs for Data Transfer</name>
+      <description>
+        Never expose entities directly in controllers - use DTOs
+      </description>
+      <rationale>
+        DTOs provide a stable API contract, prevent over-fetching, and avoid lazy loading issues
+      </rationale>
+      <example>
+        <![CDATA[
+// DTO classes
+@Data
+@Builder
+public class AccountDTO {
+    private Long id;
+    private String accountNumber;
+    private String accountType;
+    private BigDecimal balance;
+    private String ownerName;
+}
+
+// Conversion in service
+private AccountDTO convertToDTO(Account account) {
+    return AccountDTO.builder()
+        .id(account.getId())
+        .accountNumber(account.getAccountNumber())
+        .accountType(account.getAccountType().name())
+        .balance(account.getBalance())
+        .ownerName(account.getUser().getFullName())
+        .build();
+}
+
+// Or use MapStruct for complex mappings
+@Mapper(componentModel = "spring")
+public interface AccountMapper {
+    AccountDTO toDTO(Account account);
+    List<AccountDTO> toDTOList(List<Account> accounts);
+}
+        ]]>
+      </example>
+    </principle>
+
+    <principle>
+      <name>Implement Proper Logging</name>
+      <description>
+        Use SLF4J with appropriate log levels
+      </description>
+      <guidelines>
+        <guideline>Use @Slf4j annotation from Lombok</guideline>
+        <guideline>Log at appropriate levels (ERROR, WARN, INFO, DEBUG, TRACE)</guideline>
+        <guideline>Never log sensitive information (passwords, tokens)</guideline>
+        <guideline>Use parameterized logging for performance</guideline>
+      </guidelines>
+      <example>
+        <![CDATA[
+@Service
+@Slf4j
+public class AccountService {
+    
+    public AccountDTO getAccount(Long id) {
+        log.debug("Fetching account with id: {}", id); // DEBUG for detailed info
+        
+        Account account = accountRepository.findById(id)
+            .orElseThrow(() -> {
+                log.warn("Account not found: {}", id); // WARN for expected errors
+                return new AccountNotFoundException("Account not found");
+            });
+        
+        log.info("Account retrieved: {}", account.getAccountNumber()); // INFO for important events
+        return convertToDTO(account);
+    }
+    
+    public void processTransaction(Transaction txn) {
+        try {
+            // Process transaction
+            log.info("Transaction processed: {}", txn.getId());
+        } catch (Exception e) {
+            log.error("Failed to process transaction: {}", txn.getId(), e); // ERROR with exception
+            throw e;
+        }
+    }
+}
+        ]]>
+      </example>
+    </principle>
+  </service_layer>
+
+  <controller_layer>
+    <principle>
+      <name>RESTful Controller Design</name>
+      <description>
+        Follow REST conventions for API endpoints
+      </description>
+      <example>
+        <![CDATA[
+@RestController
+@RequestMapping("/api/accounts")
+@Slf4j
+@RequiredArgsConstructor
+public class AccountController {
+    
+    private final AccountService accountService;
+    
+    @GetMapping
+    public ResponseEntity<List<AccountDTO>> getUserAccounts(Principal principal) {
+        log.info("Fetching accounts for user: {}", principal.getName());
+        List<AccountDTO> accounts = accountService.getAccountsByUsername(principal.getName());
+        return ResponseEntity.ok(accounts);
+    }
+    
+    @GetMapping("/{id}")
+    public ResponseEntity<AccountDTO> getAccount(
+            @PathVariable Long id,
+            Principal principal) {
+        log.info("Fetching account {} for user: {}", id, principal.getName());
+        AccountDTO account = accountService.getAccount(id, principal.getName());
+        return ResponseEntity.ok(account);
+    }
+    
+    @PostMapping
+    public ResponseEntity<AccountDTO> createAccount(
+            @Valid @RequestBody CreateAccountRequest request,
+            Principal principal) {
+        log.info("Creating account for user: {}", principal.getName());
+        AccountDTO account = accountService.createAccount(request, principal.getName());
+        return ResponseEntity
+            .created(URI.create("/api/accounts/" + account.getId()))
+            .body(account);
+    }
+    
+    @PutMapping("/{id}")
+    public ResponseEntity<AccountDTO> updateAccount(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateAccountRequest request,
+            Principal principal) {
+        log.info("Updating account {} for user: {}", id, principal.getName());
+        AccountDTO account = accountService.updateAccount(id, request, principal.getName());
+        return ResponseEntity.ok(account);
+    }
+    
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteAccount(
+            @PathVariable Long id,
+            Principal principal) {
+        log.info("Deleting account {} for user: {}", id, principal.getName());
+        accountService.deleteAccount(id, principal.getName());
+        return ResponseEntity.noContent().build();
+    }
+}
+        ]]>
+      </example>
+    </principle>
+
+    <principle>
+      <name>Input Validation</name>
+      <description>
+        Validate all input using Bean Validation annotations
+      </description>
+      <example>
+        <![CDATA[
+@Data
+public class TransferRequest {
+    
+    @NotBlank(message = "Source account is required")
+    @Pattern(regexp = "\\d{4,20}", message = "Invalid account number format")
+    private String fromAccount;
+    
+    @NotBlank(message = "Destination account is required")
+    @Pattern(regexp = "\\d{4,20}", message = "Invalid account number format")
+    private String toAccount;
+    
+    @NotNull(message = "Amount is required")
+    @DecimalMin(value = "0.01", message = "Amount must be positive")
+    @DecimalMax(value = "1000000.00", message = "Amount exceeds maximum limit")
+    private BigDecimal amount;
+    
+    @Size(max = 200, message = "Description too long")
+    private String description;
+}
+
+// In controller
+@PostMapping("/transfers")
+public ResponseEntity<TransferResponse> transfer(
+        @Valid @RequestBody TransferRequest request,
+        Principal principal) {
+    // Validation happens automatically
+    TransferResponse response = transferService.executeTransfer(request, principal.getName());
+    return ResponseEntity.ok(response);
+}
+        ]]>
+      </example>
+    </principle>
+
+    <principle>
+      <name>Global Exception Handling</name>
+      <description>
+        Use @ControllerAdvice for centralized exception handling
+      </description>
+      <example>
+        <![CDATA[
+@ControllerAdvice
+@Slf4j
+public class GlobalExceptionHandler {
+    
+    @ExceptionHandler(AccountNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleAccountNotFound(AccountNotFoundException ex) {
+        log.warn("Account not found: {}", ex.getMessage());
+        ErrorResponse error = ErrorResponse.builder()
+            .timestamp(LocalDateTime.now())
+            .status(HttpStatus.NOT_FOUND.value())
+            .error("Not Found")
+            .message(ex.getMessage())
+            .build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+    
+    @ExceptionHandler(InsufficientFundsException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientFunds(InsufficientFundsException ex) {
+        log.warn("Insufficient funds: {}", ex.getMessage());
+        ErrorResponse error = ErrorResponse.builder()
+            .timestamp(LocalDateTime.now())
+            .status(HttpStatus.BAD_REQUEST.value())
+            .error("Bad Request")
+            .message(ex.getMessage())
+            .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+    
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex) {
+        log.warn("Validation error: {}", ex.getMessage());
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+            errors.put(error.getField(), error.getDefaultMessage())
+        );
+        ErrorResponse error = ErrorResponse.builder()
+            .timestamp(LocalDateTime.now())
+            .status(HttpStatus.BAD_REQUEST.value())
+            .error("Validation Failed")
+            .message("Invalid input")
+            .validationErrors(errors)
+            .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+    
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+        log.error("Unexpected error", ex);
+        ErrorResponse error = ErrorResponse.builder()
+            .timestamp(LocalDateTime.now())
+            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+            .error("Internal Server Error")
+            .message("An unexpected error occurred")
+            .build();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+}
+
+@Data
+@Builder
+public class ErrorResponse {
+    private LocalDateTime timestamp;
+    private int status;
+    private String error;
+    private String message;
+    private Map<String, String> validationErrors;
+}
+        ]]>
+      </example>
+    </principle>
+  </controller_layer>
+
+  <security_configuration>
+    <principle>
+      <name>Spring Security Configuration</name>
+      <description>
+        Configure Spring Security for authentication and authorization
+      </description>
+      <example>
+        <![CDATA[
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+public class SecurityConfig {
+    
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers("/api/**") // Disable CSRF for REST APIs
+            )
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/", "/login", "/css/**", "/js/**", "/images/**").permitAll()
+                .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .anyRequest().authenticated()
+            )
+            .formLogin(form -> form
+                .loginPage("/login")
+                .defaultSuccessUrl("/accounts", true)
+                .failureUrl("/login?error=true")
+                .permitAll()
+            )
+            .logout(logout -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/login?logout=true")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+                .permitAll()
+            )
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                .maximumSessions(1)
+                .maxSessionsPreventsLogin(false)
+            );
+        
+        return http.build();
+    }
+    
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(12); // Strength 12
+    }
+    
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
+    }
+}
+
+@Service
+@RequiredArgsConstructor
+public class UserDetailsServiceImpl implements UserDetailsService {
+    
+    private final UserRepository userRepository;
+    
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        
+        return org.springframework.security.core.userdetails.User.builder()
+            .username(user.getUsername())
+            .password(user.getPassword())
+            .roles(user.getRole())
+            .accountLocked(!user.isActive())
+            .build();
+    }
+}
+        ]]>
+      </example>
+    </principle>
+
+    <principle>
+      <name>Password Hashing</name>
+      <description>
+        Always hash passwords using BCrypt
+      </description>
+      <example>
+        <![CDATA[
+@Service
+@RequiredArgsConstructor
+public class UserService {
+    
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    
+    public User createUser(CreateUserRequest request) {
+        // Hash password before saving
+        String hashedPassword = passwordEncoder.encode(request.getPassword());
+        
+        User user = User.builder()
+            .username(request.getUsername())
+            .password(hashedPassword)
+            .email(request.getEmail())
+            .fullName(request.getFullName())
+            .role("USER")
+            .active(true)
+            .build();
+        
+        return userRepository.save(user);
+    }
+    
+    public boolean validatePassword(String rawPassword, String encodedPassword) {
+        return passwordEncoder.matches(rawPassword, encodedPassword);
+    }
+}
+
+// Generate BCrypt hash for data.sql
+// Use: new BCryptPasswordEncoder().encode("password")
+// Result: $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy
+        ]]>
+      </example>
+    </principle>
+  </security_configuration>
+
+  <configuration_management>
+    <principle>
+      <name>Externalize Configuration</name>
+      <description>
+        Use application.yml for configuration with environment variable support
+      </description>
+      <example>
+        <![CDATA[
+# application.yml
+spring:
+  application:
+    name: abc-bank
+  
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/abcbank}
+    username: ${SPRING_DATASOURCE_USERNAME:abcbank}
+    password: ${SPRING_DATASOURCE_PASSWORD:changeme}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+  
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    show-sql: ${SPRING_JPA_SHOW_SQL:false}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
+  
+  sql:
+    init:
+      mode: ${SPRING_SQL_INIT_MODE:always}
+      data-locations: classpath:data.sql
+  
+  security:
+    user:
+      name: ${ADMIN_USERNAME:admin}
+      password: ${ADMIN_PASSWORD:admin}
+
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /
+  error:
+    include-message: always
+    include-binding-errors: always
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.abcbank: ${LOG_LEVEL:DEBUG}
+    org.springframework.web: INFO
+    org.hibernate.SQL: ${SQL_LOG_LEVEL:DEBUG}
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+info:
+  app:
+    name: ABC Bank
+    description: Modernized Banking Application
+    version: 2.0.0
+    encoding: ${project.build.sourceEncoding}
+    java:
+      version: ${java.version}
+        ]]>
+      </example>
+    </principle>
+
+    <principle>
+      <name>Profile-Specific Configuration</name>
+      <description>
+        Use Spring profiles for environment-specific settings
+      </description>
+      <example>
+        <![CDATA[
+# application-dev.yml
+spring:
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+  sql:
+    init:
+      mode: always
+
+logging:
+  level:
+    com.abcbank: DEBUG
+    org.hibernate.SQL: DEBUG
+
+# application-prod.yml
+spring:
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+  sql:
+    init:
+      mode: never
+
+logging:
+  level:
+    com.abcbank: INFO
+    org.hibernate.SQL: WARN
+        ]]>
+      </example>
+    </principle>
+  </configuration_management>
+
+  <testing_practices>
+    <principle>
+      <name>Unit Testing Services</name>
+      <description>
+        Write unit tests for service layer logic
+      </description>
+      <example>
+        <![CDATA[
+@ExtendWith(MockitoExtension.class)
+class TransferServiceTest {
+    
+    @Mock
+    private AccountRepository accountRepository;
+    
+    @Mock
+    private TransactionRepository transactionRepository;
+    
+    @InjectMocks
+    private TransferService transferService;
+    
+    @Test
+    void executeTransfer_Success() {
+        // Given
+        Account fromAccount = Account.builder()
+            .accountNumber("1001")
+            .balance(new BigDecimal("1000.00"))
+            .build();
+        
+        Account toAccount = Account.builder()
+            .accountNumber("2001")
+            .balance(new BigDecimal("500.00"))
+            .build();
+        
+        TransferRequest request = TransferRequest.builder()
+            .fromAccount("1001")
+            .toAccount("2001")
+            .amount(new BigDecimal("100.00"))
+            .build();
+        
+        when(accountRepository.findByAccountNumber("1001"))
+            .thenReturn(Optional.of(fromAccount));
+        when(accountRepository.findByAccountNumber("2001"))
+            .thenReturn(Optional.of(toAccount));
+        
+        // When
+        TransferResponse response = transferService.executeTransfer(request);
+        
+        // Then
+        assertThat(response.isSuccess()).isTrue();
+        assertThat(fromAccount.getBalance()).isEqualByComparingTo("900.00");
+        assertThat(toAccount.getBalance()).isEqualByComparingTo("600.00");
+        
+        verify(accountRepository).saveAll(anyList());
+        verify(transactionRepository).saveAll(anyList());
+    }
+    
+    @Test
+    void executeTransfer_InsufficientFunds_ThrowsException() {
+        // Given
+        Account fromAccount = Account.builder()
+            .accountNumber("1001")
+            .balance(new BigDecimal("50.00"))
+            .build();
+        
+        TransferRequest request = TransferRequest.builder()
+            .fromAccount("1001")
+            .toAccount("2001")
+            .amount(new BigDecimal("100.00"))
+            .build();
+        
+        when(accountRepository.findByAccountNumber("1001"))
+            .thenReturn(Optional.of(fromAccount));
+        
+        // When/Then
+        assertThatThrownBy(() -> transferService.executeTransfer(request))
+            .isInstanceOf(InsufficientFundsException.class)
+            .hasMessageContaining("Insufficient balance");
+    }
+}
+        ]]>
+      </example>
+    </principle>
+
+    <principle>
+      <name>Integration Testing Controllers</name>
+      <description>
+        Use @SpringBootTest for integration tests
+      </description>
+      <example>
+        <![CDATA[
+@SpringBootTest
+@AutoConfigureMockMvc
+@Transactional
+class AccountControllerIntegrationTest {
+    
+    @Autowired
+    private MockMvc mockMvc;
+    
+    @Autowired
+    private ObjectMapper objectMapper;
+    
+    @Test
+    @WithMockUser(username = "john.doe", roles = "USER")
+    void getUserAccounts_ReturnsAccounts() throws Exception {
+        mockMvc.perform(get("/api/accounts"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$[0].accountNumber").exists())
+            .andExpect(jsonPath("$[0].balance").exists());
+    }
+    
+    @Test
+    @WithMockUser(username = "john.doe", roles = "USER")
+    void createTransfer_ValidRequest_ReturnsSuccess() throws Exception {
+        TransferRequest request = TransferRequest.builder()
+            .fromAccount("1001")
+            .toAccount("2001")
+            .amount(new BigDecimal("100.00"))
+            .build();
+        
+        mockMvc.perform(post("/api/transfers")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true));
+    }
+}
+        ]]>
+      </example>
+    </principle>
+  </testing_practices>
+
+  <common_pitfalls>
+    <pitfall>
+      <name>Exposing Entities in REST APIs</name>
+      <problem>Directly returning JPA entities from controllers</problem>
+      <why_bad>
+        - Exposes internal structure
+        - Can cause lazy loading exceptions
+        - Tight coupling between API and database
+        - Security risks (exposing sensitive fields)
+      </why_bad>
+      <solution>Always use DTOs for API responses</solution>
+    </pitfall>
+
+    <pitfall>
+      <name>Not Using @Transactional</name>
+      <problem>Forgetting @Transactional on service methods</problem>
+      <why_bad>
+        - No transaction management
+        - Lazy loading exceptions
+        - Data inconsistency
+      </why_bad>
+      <solution>Apply @Transactional at service layer</solution>
+    </pitfall>
+
+    <pitfall>
+      <name>Using float/double for Money</name>
+      <problem>Using floating-point types for monetary values</problem>
+      <why_bad>Rounding errors in financial calculations</why_bad>
+      <solution>Always use BigDecimal for money</solution>
+    </pitfall>
+
+    <pitfall>
+      <name>Hardcoding Configuration</name>
+      <problem>Hardcoding database URLs, credentials, etc.</problem>
+      <why_bad>
+        - Not cloud-native
+        - Security risk
+        - Difficult to deploy across environments
+      </why_bad>
+      <solution>Use environment variables and application.yml</solution>
+    </pitfall>
+
+    <pitfall>
+      <name>Not Implementing Health Checks</name>
+      <problem>Missing health check endpoints</problem>
+      <why_bad>Kubernetes can't determine application health</why_bad>
+      <solution>Enable Spring Boot Actuator with health endpoints</solution>
+    </pitfall>
+  </common_pitfalls>
+
+  <code_quality_checklist>
+    <category name="Architecture">
+      <item>Proper layering (controller → service → repository)</item>
+      <item>DTOs used for data transfer</item>
+      <item>Separation of concerns maintained</item>
+    </category>
+    
+    <category name="Data Access">
+      <item>JPA entities properly annotated</item>
+      <item>BigDecimal used for monetary values</item>
+      <item>@Transactional applied correctly</item>
+      <item>No N+1 query problems</item>
+    </category>
+    
+    <category name="Security">
+      <item>Passwords hashed with BCrypt</item>
+      <item>Spring Security configured</item>
+      <item>No sensitive data in logs</item>
+      <item>Input validation implemented</item>
+    </category>
+    
+    <category name="Configuration">
+      <item>Configuration externalized</item>
+      <item>Environment variables supported</item>
+      <item>No hardcoded credentials</item>
+      <item>Actuator endpoints enabled</item>
+    </category>
+    
+    <category name="Error Handling">
+      <item>Global exception handler implemented</item>
+      <item>Appropriate HTTP status codes</item>
+      <item>Meaningful error messages</item>
+      <item>Proper logging</item>
+    </category>
+    
+    <category name="Testing">
+      <item>Unit tests for services</item>
+      <item>Integration tests for controllers</item>
+      <item>Test coverage > 70%</item>
+    </category>
+  </code_quality_checklist>
+</spring_boot_best_practices>
+
+<!-- Made with Bob -->
