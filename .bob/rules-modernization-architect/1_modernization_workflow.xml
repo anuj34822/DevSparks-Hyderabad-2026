@@ -1,0 +1,1081 @@
+<modernization_workflow>
+  <overview>
+    This workflow guides the complete modernization of a legacy Java application (Struts 1.x, JSP, Servlets, JDBC, SQLite)
+    to a modern, cloud-native Spring Boot application with PostgreSQL, containerization, and Helm-based deployment.
+    
+    This is NOT a rewrite-from-scratch project. The goal is working modernization with full functional parity.
+  </overview>
+
+  <critical_constraints>
+    <constraint priority="critical">
+      <rule>Maintain 100% functional parity with legacy application</rule>
+      <rationale>This is a modernization, not a feature enhancement project</rationale>
+    </constraint>
+    <constraint priority="critical">
+      <rule>NO PersistentVolumeClaims (PVCs) allowed</rule>
+      <rationale>PostgreSQL must use emptyDir volumes only (ephemeral storage acceptable for demo)</rationale>
+    </constraint>
+    <constraint priority="critical">
+      <rule>All Kubernetes manifests must be Helm-templated</rule>
+      <rationale>No standalone YAML files - everything goes through Helm</rationale>
+    </constraint>
+    <constraint priority="high">
+      <rule>Application must be stateless</rule>
+      <rationale>Cloud-native architecture requirement</rationale>
+    </constraint>
+  </critical_constraints>
+
+  <phase_1_analysis>
+    <title>Legacy Application Analysis</title>
+    <description>
+      Thoroughly understand the existing application before making any changes
+    </description>
+    
+    <step number="1">
+      <action>Identify and catalog all legacy components</action>
+      <tools>
+        <tool>list_files - Map directory structure</tool>
+        <tool>search_files - Find Struts configs, JSPs, Servlets</tool>
+        <tool>read_file - Examine key configuration files</tool>
+      </tools>
+      <deliverables>
+        <item>List of all Struts actions and their mappings</item>
+        <item>Inventory of JSP pages and their purposes</item>
+        <item>Database schema from SQLite</item>
+        <item>Business logic flow documentation</item>
+      </deliverables>
+    </step>
+
+    <step number="2">
+      <action>Extract database schema and data</action>
+      <details>
+        Analyze the SQLite database to understand:
+        - Table structures and relationships
+        - Data types and constraints
+        - Sample data for testing
+        - Foreign key relationships
+      </details>
+      <commands>
+        <command>sqlite3 database.db ".schema" > schema.sql</command>
+        <command>sqlite3 database.db ".dump" > data_dump.sql</command>
+      </commands>
+    </step>
+
+    <step number="3">
+      <action>Map legacy features to modern equivalents</action>
+      <mapping>
+        <legacy_to_modern>
+          <item>
+            <legacy>Struts Action classes</legacy>
+            <modern>Spring MVC @RestController or @Controller</modern>
+          </item>
+          <item>
+            <legacy>JSP pages</legacy>
+            <modern>Thymeleaf templates OR React components</modern>
+          </item>
+          <item>
+            <legacy>JDBC DAO classes</legacy>
+            <modern>Spring Data JPA Repositories</modern>
+          </item>
+          <item>
+            <legacy>SQLite database</legacy>
+            <modern>PostgreSQL with JPA entities</modern>
+          </item>
+          <item>
+            <legacy>web.xml configuration</legacy>
+            <modern>Spring Boot auto-configuration</modern>
+          </item>
+        </legacy_to_modern>
+      </mapping>
+    </step>
+
+    <step number="4">
+      <action>Document all functional requirements</action>
+      <required_features>
+        <feature>User login with authentication</feature>
+        <feature>Account summary display</feature>
+        <feature>Transaction history viewing</feature>
+        <feature>Fund transfer between accounts</feature>
+        <feature>User logout</feature>
+        <feature>Optional: Admin user/account seeding</feature>
+      </required_features>
+    </step>
+  </phase_1_analysis>
+
+  <phase_2_architecture_design>
+    <title>Modern Architecture Design</title>
+    <description>
+      Design the target Spring Boot architecture before implementation
+    </description>
+
+    <step number="1">
+      <action>Define project structure</action>
+      <mandatory_structure>
+        <![CDATA[
+abc-bank/
+├── backend/
+│   ├── src/main/java/com/abcbank/
+│   │   ├── controller/      # REST controllers or MVC controllers
+│   │   ├── service/         # Business logic layer
+│   │   ├── repository/      # Spring Data JPA repositories
+│   │   ├── model/           # JPA entities
+│   │   ├── dto/             # Data Transfer Objects
+│   │   ├── config/          # Spring configuration classes
+│   │   └── exception/       # Exception handling
+│   ├── src/main/resources/
+│   │   ├── application.yml  # Spring Boot configuration
+│   │   ├── data.sql         # Seed data for demo
+│   │   └── templates/       # Thymeleaf templates (if used)
+│   ├── pom.xml
+│   └── Dockerfile
+├── frontend/                # Only if React/Next.js option chosen
+│   ├── src/
+│   ├── package.json
+│   └── Dockerfile
+├── helm/
+│   └── abc-bank/
+│       ├── Chart.yaml
+│       ├── values.yaml
+│       └── templates/
+│           ├── _helpers.tpl
+│           ├── secrets.yaml
+│           ├── app-deployment.yaml
+│           ├── app-service.yaml
+│           ├── postgres-deployment.yaml
+│           ├── postgres-service.yaml
+│           └── route.yaml
+└── README.md
+        ]]>
+      </mandatory_structure>
+    </step>
+
+    <step number="2">
+      <action>Choose frontend approach</action>
+      <options>
+        <option name="thymeleaf" recommended="true">
+          <pros>
+            - Simpler deployment (single container)
+            - Server-side rendering
+            - Easier to maintain
+            - Better for enterprise banking UI
+          </pros>
+          <cons>
+            - Less modern feel
+            - Limited interactivity
+          </cons>
+        </option>
+        <option name="react_spa">
+          <pros>
+            - Modern, interactive UI
+            - Better user experience
+            - Clearer separation of concerns
+          </pros>
+          <cons>
+            - More complex deployment
+            - Requires separate container
+            - More development effort
+          </cons>
+        </option>
+      </options>
+      <decision_criteria>
+        Ask user which approach they prefer, or default to Thymeleaf for simplicity
+      </decision_criteria>
+    </step>
+
+    <step number="3">
+      <action>Design database schema for PostgreSQL</action>
+      <guidelines>
+        <guideline>Map SQLite types to PostgreSQL types</guideline>
+        <guideline>Create JPA entity classes with proper annotations</guideline>
+        <guideline>Use @GeneratedValue for auto-increment IDs</guideline>
+        <guideline>Define relationships with @OneToMany, @ManyToOne</guideline>
+        <guideline>Add @Column annotations for constraints</guideline>
+      </guidelines>
+      <example>
+        <![CDATA[
+@Entity
+@Table(name = "users")
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(nullable = false, unique = true)
+    private String username;
+    
+    @Column(nullable = false)
+    private String password; // BCrypt hashed
+    
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Account> accounts;
+}
+        ]]>
+      </example>
+    </step>
+
+    <step number="4">
+      <action>Design REST API endpoints (if applicable)</action>
+      <api_design>
+        <endpoint method="POST" path="/api/auth/login">Login user</endpoint>
+        <endpoint method="POST" path="/api/auth/logout">Logout user</endpoint>
+        <endpoint method="GET" path="/api/accounts">Get user accounts</endpoint>
+        <endpoint method="GET" path="/api/accounts/{id}">Get account details</endpoint>
+        <endpoint method="GET" path="/api/transactions">Get transaction history</endpoint>
+        <endpoint method="POST" path="/api/transfers">Execute fund transfer</endpoint>
+      </api_design>
+    </step>
+  </phase_2_architecture_design>
+
+  <phase_3_implementation>
+    <title>Spring Boot Implementation</title>
+    <description>
+      Build the modern application following Spring Boot best practices
+    </description>
+
+    <step number="1">
+      <action>Create Spring Boot project structure</action>
+      <tasks>
+        <task>Create pom.xml with all required dependencies</task>
+        <task>Set up main application class with @SpringBootApplication</task>
+        <task>Configure application.yml with externalized properties</task>
+        <task>Create package structure (controller, service, repository, model, dto, config)</task>
+      </tasks>
+    </step>
+
+    <step number="2">
+      <action>Implement JPA entities</action>
+      <requirements>
+        <requirement>Create entity classes for all database tables</requirement>
+        <requirement>Use proper JPA annotations (@Entity, @Table, @Column)</requirement>
+        <requirement>Define relationships (@OneToMany, @ManyToOne, @ManyToMany)</requirement>
+        <requirement>Implement equals() and hashCode() properly</requirement>
+        <requirement>Add validation annotations (@NotNull, @Size, etc.)</requirement>
+      </requirements>
+    </step>
+
+    <step number="3">
+      <action>Create Spring Data JPA repositories</action>
+      <pattern>
+        <![CDATA[
+public interface UserRepository extends JpaRepository<User, Long> {
+    Optional<User> findByUsername(String username);
+    boolean existsByUsername(String username);
+}
+
+public interface AccountRepository extends JpaRepository<Account, Long> {
+    List<Account> findByUserId(Long userId);
+    Optional<Account> findByAccountNumber(String accountNumber);
+}
+
+public interface TransactionRepository extends JpaRepository<Transaction, Long> {
+    List<Transaction> findByAccountIdOrderByTimestampDesc(Long accountId);
+    List<Transaction> findByAccountIdAndTimestampBetween(
+        Long accountId, LocalDateTime start, LocalDateTime end
+    );
+}
+        ]]>
+      </pattern>
+    </step>
+
+    <step number="4">
+      <action>Implement service layer with business logic</action>
+      <requirements>
+        <requirement>Use @Service annotation</requirement>
+        <requirement>Apply @Transactional for database operations</requirement>
+        <requirement>Implement proper error handling</requirement>
+        <requirement>Use DTOs for data transfer (don't expose entities)</requirement>
+        <requirement>Add SLF4J logging</requirement>
+      </requirements>
+      <example>
+        <![CDATA[
+@Service
+@Transactional
+@Slf4j
+public class TransferService {
+    
+    private final AccountRepository accountRepository;
+    private final TransactionRepository transactionRepository;
+    
+    public TransferResponse executeTransfer(TransferRequest request) {
+        log.info("Executing transfer from {} to {}", 
+            request.getFromAccount(), request.getToAccount());
+        
+        Account fromAccount = accountRepository
+            .findByAccountNumber(request.getFromAccount())
+            .orElseThrow(() -> new AccountNotFoundException("Source account not found"));
+            
+        Account toAccount = accountRepository
+            .findByAccountNumber(request.getToAccount())
+            .orElseThrow(() -> new AccountNotFoundException("Destination account not found"));
+        
+        if (fromAccount.getBalance().compareTo(request.getAmount()) < 0) {
+            throw new InsufficientFundsException("Insufficient balance");
+        }
+        
+        fromAccount.setBalance(fromAccount.getBalance().subtract(request.getAmount()));
+        toAccount.setBalance(toAccount.getBalance().add(request.getAmount()));
+        
+        Transaction debitTxn = createTransaction(fromAccount, request.getAmount().negate(), "DEBIT");
+        Transaction creditTxn = createTransaction(toAccount, request.getAmount(), "CREDIT");
+        
+        accountRepository.saveAll(List.of(fromAccount, toAccount));
+        transactionRepository.saveAll(List.of(debitTxn, creditTxn));
+        
+        return new TransferResponse(true, "Transfer successful");
+    }
+}
+        ]]>
+      </example>
+    </step>
+
+    <step number="5">
+      <action>Implement controllers</action>
+      <rest_controller_example>
+        <![CDATA[
+@RestController
+@RequestMapping("/api/accounts")
+@Slf4j
+public class AccountController {
+    
+    private final AccountService accountService;
+    
+    @GetMapping
+    public ResponseEntity<List<AccountDTO>> getUserAccounts(Principal principal) {
+        log.info("Fetching accounts for user: {}", principal.getName());
+        List<AccountDTO> accounts = accountService.getAccountsByUsername(principal.getName());
+        return ResponseEntity.ok(accounts);
+    }
+    
+    @GetMapping("/{id}")
+    public ResponseEntity<AccountDTO> getAccount(@PathVariable Long id, Principal principal) {
+        AccountDTO account = accountService.getAccount(id, principal.getName());
+        return ResponseEntity.ok(account);
+    }
+}
+        ]]>
+      </rest_controller_example>
+      <mvc_controller_example>
+        <![CDATA[
+@Controller
+@RequestMapping("/accounts")
+@Slf4j
+public class AccountController {
+    
+    private final AccountService accountService;
+    
+    @GetMapping
+    public String listAccounts(Model model, Principal principal) {
+        log.info("Displaying accounts for user: {}", principal.getName());
+        List<AccountDTO> accounts = accountService.getAccountsByUsername(principal.getName());
+        model.addAttribute("accounts", accounts);
+        return "accounts/list";
+    }
+}
+        ]]>
+      </mvc_controller_example>
+    </step>
+
+    <step number="6">
+      <action>Implement Spring Security</action>
+      <requirements>
+        <requirement>Create SecurityConfig class extending WebSecurityConfigurerAdapter</requirement>
+        <requirement>Configure form login or HTTP Basic authentication</requirement>
+        <requirement>Use BCryptPasswordEncoder for password hashing</requirement>
+        <requirement>Implement UserDetailsService for authentication</requirement>
+        <requirement>Configure authorization rules for endpoints</requirement>
+      </requirements>
+      <example>
+        <![CDATA[
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+    
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/", "/login", "/css/**", "/js/**").permitAll()
+                .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                .anyRequest().authenticated()
+            )
+            .formLogin(form -> form
+                .loginPage("/login")
+                .defaultSuccessUrl("/accounts", true)
+                .permitAll()
+            )
+            .logout(logout -> logout
+                .logoutSuccessUrl("/login?logout")
+                .permitAll()
+            );
+        return http.build();
+    }
+    
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}
+        ]]>
+      </example>
+    </step>
+
+    <step number="7">
+      <action>Configure Spring Boot Actuator</action>
+      <configuration>
+        <![CDATA[
+# application.yml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: ABC Bank
+    description: Modernized Banking Application
+    version: 2.0.0
+        ]]>
+      </configuration>
+    </step>
+
+    <step number="8">
+      <action>Create data.sql for seed data</action>
+      <requirements>
+        <requirement>Insert demo users with BCrypt hashed passwords</requirement>
+        <requirement>Create sample accounts</requirement>
+        <requirement>Add sample transactions</requirement>
+        <requirement>Ensure referential integrity</requirement>
+      </requirements>
+      <example>
+        <![CDATA[
+-- Users (password is 'password' hashed with BCrypt)
+INSERT INTO users (username, password, email, full_name) VALUES
+('john.doe', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'john@example.com', 'John Doe'),
+('jane.smith', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'jane@example.com', 'Jane Smith');
+
+-- Accounts
+INSERT INTO accounts (account_number, user_id, account_type, balance) VALUES
+('1001', 1, 'SAVINGS', 5000.00),
+('1002', 1, 'CHECKING', 2500.00),
+('2001', 2, 'SAVINGS', 10000.00);
+
+-- Transactions
+INSERT INTO transactions (account_id, amount, type, description, timestamp) VALUES
+(1, -100.00, 'DEBIT', 'ATM Withdrawal', CURRENT_TIMESTAMP),
+(1, 500.00, 'CREDIT', 'Salary Deposit', CURRENT_TIMESTAMP);
+        ]]>
+      </example>
+    </step>
+
+    <step number="9">
+      <action>Implement global exception handling</action>
+      <pattern>
+        <![CDATA[
+@ControllerAdvice
+@Slf4j
+public class GlobalExceptionHandler {
+    
+    @ExceptionHandler(AccountNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleAccountNotFound(AccountNotFoundException ex) {
+        log.error("Account not found: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse("ACCOUNT_NOT_FOUND", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+    
+    @ExceptionHandler(InsufficientFundsException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientFunds(InsufficientFundsException ex) {
+        log.error("Insufficient funds: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse("INSUFFICIENT_FUNDS", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+    
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+        log.error("Unexpected error", ex);
+        ErrorResponse error = new ErrorResponse("INTERNAL_ERROR", "An unexpected error occurred");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+}
+        ]]>
+      </pattern>
+    </step>
+  </phase_3_implementation>
+
+  <phase_4_containerization>
+    <title>Docker Containerization</title>
+    <description>
+      Create Docker images for the application
+    </description>
+
+    <step number="1">
+      <action>Create Dockerfile for Spring Boot application</action>
+      <dockerfile_template>
+        <![CDATA[
+# Multi-stage build for Spring Boot
+FROM maven:3.9-eclipse-temurin-17 AS build
+WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean package -DskipTests
+
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
+
+# Create non-root user
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
+        ]]>
+      </dockerfile_template>
+    </step>
+
+    <step number="2">
+      <action>Create Dockerfile for frontend (if React/Next.js)</action>
+      <dockerfile_template>
+        <![CDATA[
+# Multi-stage build for React
+FROM node:18-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/build /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+        ]]>
+      </dockerfile_template>
+    </step>
+
+    <step number="3">
+      <action>Build Docker images locally</action>
+      <commands>
+        <command>cd backend && docker build -t abc-bank-backend:latest .</command>
+        <command>cd frontend && docker build -t abc-bank-frontend:latest .</command>
+      </commands>
+      <note>
+        Images should be built locally. Do NOT use oc new-build or BuildConfigs.
+      </note>
+    </step>
+  </phase_4_containerization>
+
+  <phase_5_helm_charts>
+    <title>Helm Chart Creation</title>
+    <description>
+      Create comprehensive Helm charts for Kubernetes/OpenShift deployment
+    </description>
+
+    <step number="1">
+      <action>Create Helm chart structure</action>
+      <commands>
+        <command>mkdir -p helm/abc-bank/templates</command>
+        <command>touch helm/abc-bank/Chart.yaml</command>
+        <command>touch helm/abc-bank/values.yaml</command>
+      </commands>
+    </step>
+
+    <step number="2">
+      <action>Create Chart.yaml</action>
+      <template>
+        <![CDATA[
+apiVersion: v2
+name: abc-bank
+description: Modernized ABC Bank Application
+type: application
+version: 1.0.0
+appVersion: "2.0.0"
+keywords:
+  - banking
+  - spring-boot
+  - postgresql
+maintainers:
+  - name: ABC Bank Team
+    email: team@abcbank.com
+        ]]>
+      </template>
+    </step>
+
+    <step number="3">
+      <action>Create values.yaml with all configuration</action>
+      <template>
+        <![CDATA[
+# Application configuration
+app:
+  name: abc-bank
+  replicaCount: 1
+  image:
+    repository: abc-bank-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  livenessProbe:
+    httpGet:
+      path: /actuator/health/liveness
+      port: 8080
+    initialDelaySeconds: 60
+    periodSeconds: 10
+  readinessProbe:
+    httpGet:
+      path: /actuator/health/readiness
+      port: 8080
+    initialDelaySeconds: 30
+    periodSeconds: 5
+
+# PostgreSQL configuration
+postgresql:
+  enabled: true
+  image:
+    repository: postgres
+    tag: "15-alpine"
+  service:
+    type: ClusterIP
+    port: 5432
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  # CRITICAL: Use emptyDir only (no PVCs)
+  persistence:
+    enabled: false
+  volumeMount:
+    name: postgres-data
+    mountPath: /var/lib/postgresql/data
+
+# Database credentials (will be stored in secrets)
+database:
+  name: abcbank
+  username: abcbank
+  password: changeme123
+
+# OpenShift Route configuration
+route:
+  enabled: true
+  host: abc-bank.apps.example.com
+  tls:
+    enabled: true
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+        ]]>
+      </template>
+    </step>
+
+    <step number="4">
+      <action>Create _helpers.tpl for reusable templates</action>
+      <template>
+        <![CDATA[
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "abc-bank.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Create a default fully qualified app name.
+*/}}
+{{- define "abc-bank.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create chart name and version as used by the chart label.
+*/}}
+{{- define "abc-bank.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Common labels
+*/}}
+{{- define "abc-bank.labels" -}}
+helm.sh/chart: {{ include "abc-bank.chart" . }}
+{{ include "abc-bank.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
+Selector labels
+*/}}
+{{- define "abc-bank.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "abc-bank.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+        ]]>
+      </template>
+    </step>
+
+    <step number="5">
+      <action>Create secrets.yaml for database credentials</action>
+      <template>
+        <![CDATA[
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "abc-bank.fullname" . }}-db-secret
+  labels:
+    {{- include "abc-bank.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  database-name: {{ .Values.database.name }}
+  database-user: {{ .Values.database.username }}
+  database-password: {{ .Values.database.password }}
+        ]]>
+      </template>
+    </step>
+
+    <step number="6">
+      <action>Create postgres-deployment.yaml</action>
+      <critical_note>
+        MUST use emptyDir volume, NOT PersistentVolumeClaim
+      </critical_note>
+      <template>
+        <![CDATA[
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "abc-bank.fullname" . }}-postgres
+  labels:
+    {{- include "abc-bank.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "abc-bank.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: database
+  template:
+    metadata:
+      labels:
+        {{- include "abc-bank.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: database
+    spec:
+      containers:
+      - name: postgresql
+        image: "{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
+        ports:
+        - containerPort: 5432
+          name: postgresql
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "abc-bank.fullname" . }}-db-secret
+              key: database-name
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "abc-bank.fullname" . }}-db-secret
+              key: database-user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "abc-bank.fullname" . }}-db-secret
+              key: database-password
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        resources:
+          {{- toYaml .Values.postgresql.resources | nindent 10 }}
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - pg_isready -U $POSTGRES_USER
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - pg_isready -U $POSTGRES_USER
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: postgres-data
+        emptyDir: {}  # CRITICAL: emptyDir only, no PVC
+        ]]>
+      </template>
+    </step>
+
+    <step number="7">
+      <action>Create postgres-service.yaml</action>
+      <template>
+        <![CDATA[
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "abc-bank.fullname" . }}-postgres
+  labels:
+    {{- include "abc-bank.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  type: {{ .Values.postgresql.service.type }}
+  ports:
+  - port: {{ .Values.postgresql.service.port }}
+    targetPort: postgresql
+    protocol: TCP
+    name: postgresql
+  selector:
+    {{- include "abc-bank.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+        ]]>
+      </template>
+    </step>
+
+    <step number="8">
+      <action>Create app-deployment.yaml</action>
+      <template>
+        <![CDATA[
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "abc-bank.fullname" . }}
+  labels:
+    {{- include "abc-bank.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  replicas: {{ .Values.app.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "abc-bank.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        {{- include "abc-bank.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: backend
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.app.image.repository }}:{{ .Values.app.image.tag }}"
+        imagePullPolicy: {{ .Values.app.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.app.service.port }}
+          name: http
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://{{ include "abc-bank.fullname" . }}-postgres:5432/{{ .Values.database.name }}"
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "abc-bank.fullname" . }}-db-secret
+              key: database-user
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "abc-bank.fullname" . }}-db-secret
+              key: database-password
+        - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+          value: "update"
+        - name: SPRING_JPA_SHOW_SQL
+          value: "false"
+        resources:
+          {{- toYaml .Values.app.resources | nindent 10 }}
+        livenessProbe:
+          {{- toYaml .Values.app.livenessProbe | nindent 10 }}
+        readinessProbe:
+          {{- toYaml .Values.app.readinessProbe | nindent 10 }}
+        ]]>
+      </template>
+    </step>
+
+    <step number="9">
+      <action>Create app-service.yaml</action>
+      <template>
+        <![CDATA[
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "abc-bank.fullname" . }}
+  labels:
+    {{- include "abc-bank.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  type: {{ .Values.app.service.type }}
+  ports:
+  - port: {{ .Values.app.service.port }}
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    {{- include "abc-bank.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+        ]]>
+      </template>
+    </step>
+
+    <step number="10">
+      <action>Create route.yaml for OpenShift</action>
+      <template>
+        <![CDATA[
+{{- if .Values.route.enabled }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ include "abc-bank.fullname" . }}
+  labels:
+    {{- include "abc-bank.labels" . | nindent 4 }}
+spec:
+  host: {{ .Values.route.host }}
+  to:
+    kind: Service
+    name: {{ include "abc-bank.fullname" . }}
+    weight: 100
+  port:
+    targetPort: http
+  {{- if .Values.route.tls.enabled }}
+  tls:
+    termination: {{ .Values.route.tls.termination }}
+    insecureEdgeTerminationPolicy: {{ .Values.route.tls.insecureEdgeTerminationPolicy }}
+  {{- end }}
+  wildcardPolicy: None
+{{- end }}
+        ]]>
+      </template>
+    </step>
+  </phase_5_helm_charts>
+
+  <phase_6_documentation>
+    <title>Documentation and README</title>
+    <description>
+      Create comprehensive documentation for the modernized application
+    </description>
+
+    <step number="1">
+      <action>Create comprehensive README.md</action>
+      <required_sections>
+        <section>Project Overview</section>
+        <section>Architecture Diagram</section>
+        <section>Technology Stack</section>
+        <section>Prerequisites</section>
+        <section>Local Development Setup</section>
+        <section>Building the Application</section>
+        <section>Building Docker Images</section>
+        <section>Deploying with Helm</section>
+        <section>Accessing the Application</section>
+        <section>Demo Credentials</section>
+        <section>API Documentation</section>
+        <section>Known Limitations</section>
+        <section>Troubleshooting</section>
+      </required_sections>
+    </step>
+
+    <step number="2">
+      <action>Document known limitations</action>
+      <limitations>
+        <limitation>PostgreSQL uses emptyDir (ephemeral storage) - data lost on pod restart</limitation>
+        <limitation>Single replica deployment (not production-ready)</limitation>
+        <limitation>Demo credentials hardcoded in data.sql</limitation>
+        <limitation>No backup/restore mechanism</limitation>
+        <limitation>Suitable for demonstration purposes only</limitation>
+      </limitations>
+    </step>
+  </phase_6_documentation>
+
+  <phase_7_validation>
+    <title>Testing and Validation</title>
+    <description>
+      Ensure the modernized application works correctly
+    </description>
+
+    <validation_checklist>
+      <item>Application builds successfully with Maven</item>
+      <item>Docker images build without errors</item>
+      <item>Helm chart validates (helm lint)</item>
+      <item>Application deploys to OpenShift/Kubernetes</item>
+      <item>PostgreSQL pod starts and is ready</item>
+      <item>Application pod starts and passes health checks</item>
+      <item>Database schema is created automatically</item>
+      <item>Seed data is loaded correctly</item>
+      <item>User can log in with demo credentials</item>
+      <item>Account summary displays correctly</item>
+      <item>Transaction history shows data</item>
+      <item>Fund transfer works end-to-end</item>
+      <item>User can log out successfully</item>
+      <item>All functional requirements are met</item>
+    </validation_checklist>
+
+    <testing_commands>
+      <command>mvn clean test</command>
+      <command>docker build -t abc-bank-backend:latest .</command>
+      <command>helm lint helm/abc-bank</command>
+      <command>helm install abc-bank helm/abc-bank --dry-run --debug</command>
+      <command>helm install abc-bank helm/abc-bank</command>
+      <command>kubectl get pods -w</command>
+      <command>kubectl logs -f deployment/abc-bank</command>
+      <command>curl http://abc-bank.apps.example.com/actuator/health</command>
+    </testing_commands>
+  </phase_7_validation>
+
+  <completion_criteria>
+    <criterion priority="critical">
+      All legacy features work identically in modernized version
+    </criterion>
+    <criterion priority="critical">
+      Application is stateless and cloud-native
+    </criterion>
+    <criterion priority="critical">
+      PostgreSQL uses emptyDir only (no PVCs)
+    </criterion>
+    <criterion priority="critical">
+      All Kubernetes resources are Helm-templated
+    </criterion>
+    <criterion priority="high">
+      Application passes health checks
+    </criterion>
+    <criterion priority="high">
+      Documentation is complete and accurate
+    </criterion>
+    <criterion priority="medium">
+      Code follows Spring Boot best practices
+    </criterion>
+  </completion_criteria>
+</modernization_workflow>
+
+<!-- Made with Bob -->
