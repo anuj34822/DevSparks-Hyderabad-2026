@@ -7,16 +7,17 @@
 
 ## Lab Repository
 ```
-https://github.com/ibm-self-serve-assets/java-modernization-lab
+https://github.com/anuj34822/java-modernization-lab
 ```
 Download or clone this repo. The `legacy-netbanking` folder is your starting point.
+The repo already contains `.bob/skills/java-upgrade/` and `.bob/rules-modernization-architect/` — drop it into Bob and everything is pre-configured.
 
 ---
 
 ## What You Will Learn
 - IBM Bob built-in modes, custom modes, and MCP extensibility
 - AI-powered reverse engineering of undocumented legacy code
-- Automated Java version upgrade (8 → 17) using **Java Modernization** mode
+- Automated Java version upgrade (8 → 17) using **Bob's `/java-upgrade` skill** with OpenRewrite AST recipes
 - Full framework migration using a custom **Modernization Architect** mode
 - Auto-generated OpenShift / Kubernetes deployment artifacts
 
@@ -81,20 +82,18 @@ sudo dnf install maven            # RHEL
 
 ---
 
-### Step 4.3 — Java Version Upgrade (Java Modernization Mode)
-**Objective:** Upgrade runtime from Java 8 → Java 17 using Bob's built-in workflow.
+### Step 4.3 — Java Version Upgrade (Bob `/java-upgrade` Skill + OpenRewrite)
+**Objective:** Upgrade runtime from Java 8 → Java 17 using Bob natively — no premium package needed.
 
-1. Click **"Start New Task"** → select **"Java Modernization"**
-2. Set the project path to point to `legacy-netbanking` directory
-3. Configure:
-   - Select **"Java Upgrade"**
-   - Disable **"Git Flow"**
-   - Set **Target Java version = 17**
-   - Disable **"Jakarta EE migration"**
-4. Click **"Run Recipes"** → approve the generated Todo list
-5. On completion, a summary flowchart shows all changes applied
+> **How this works:** The `.bob/skills/java-upgrade/SKILL.md` skill in this repo teaches Bob exactly how to run OpenRewrite AST recipes via `mvn`, fix dependency conflicts, validate the build, and generate a Mermaid audit flowchart — all using Bob's built-in `read_file`, `apply_diff`, and `execute_command` capabilities.
 
-> **Note:** If "Java Modernization" workflow is not visible, close open tasks or restart Bob IDE.
+1. In Bob IDE, type `/java-upgrade` in the chat (or Bob will offer to activate it automatically).
+2. When asked, confirm the project path is `legacy-netbanking` and target version is **17**.
+3. Bob will update `pom.xml`, add the OpenRewrite plugin, and run: `mvn rewrite:run`
+4. Approve each task as Bob fixes dependency conflicts and re-runs the build.
+5. On completion, Bob writes `legacy-netbanking/java-upgrade-report.md` — a Mermaid flowchart of all changes.
+
+> **Note:** If `mvn` is not installed, Bob will prompt you to install it. See Troubleshooting 6.1.
 
 ---
 
