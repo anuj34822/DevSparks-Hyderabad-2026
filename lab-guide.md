@@ -31,7 +31,7 @@ In this lab, you will experience how IBM Bob transforms legacy Java modernizatio
 - **Create Rules** — XML rule files that encode architecture standards, migration constraints, and best practices directly into Bob's reasoning
 - **Use these three together as a system** — Mode + Skill + Rules working in combination to deliver consistent, high-quality modernization outcomes across any engagement
 
-In this lab, we apply this system to a **Legacy Struts 1.3** NetBanking application (no documentation available) and:
+In this lab, we apply this system to a **Legacy Struts 1.3** NetBanking application and:
 
 - **Reverse Engineer** the legacy code to generate comprehensive documentation, architecture diagrams, ER diagrams, and UML diagrams
 - Run the **`/java-upgrade` skill** to upgrade Java from 1.8 → 17 using OpenRewrite AST recipes
