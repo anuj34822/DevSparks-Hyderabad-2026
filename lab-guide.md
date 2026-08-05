@@ -88,7 +88,7 @@ You need this to preview the diagrams Bob generates.
 2. Search for **PlantUML**
 3. Install **PlantUML Markdown Preview**
 
-<!-- IMAGE: PlantUML Markdown Preview extension visible in the Extensions panel -->
+![PlantUML Markdown Preview extension visible in the Extensions panel](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image1.png)
 
 ### 2.4 The Application We Are Modernizing
 
@@ -149,13 +149,13 @@ You will use each of these during the lab. By the end, you will understand how t
 
 2. Open IBM Bob IDE. Go to **File → Open Folder** and select the `java-modernization-lab` folder
 
-<!-- IMAGE: Bob IDE showing File → Open Folder menu -->
+![Bob IDE showing File → Open Folder menu](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image2.png)
 
-<!-- IMAGE: Folder picker with java-modernization-lab selected -->
+![Folder picker with java-modernization-lab selected](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image3.png)
 
 3. Check the Explorer panel on the left. You should see: `.bob/`, `images/`, `legacy-netbanking/`, `lab-guide.md`
 
-<!-- IMAGE: Bob IDE Explorer panel showing the correct folder structure -->
+![Bob IDE Explorer panel showing the correct folder structure](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image4.png)
 
 ---
 
@@ -165,33 +165,33 @@ You will use each of these during the lab. By the end, you will understand how t
 
 1. Click the mode selector at the bottom-right of Bob IDE and select **Ask**
 
-<!-- IMAGE: Mode selector at bottom-right with Ask highlighted -->
+![Mode selector at bottom-right with Ask highlighted](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image5.png)
 
 2. Type this prompt in the chat and click the **Enhance Prompt** icon (✨) before hitting Enter:
 
    > *"Help me understand this legacy-netbanking application. Save the generated documentation and diagrams in legacy-netbanking-documentation directory. Make sure to generate required PlantUML diagrams like sequence diagram along with mermaid architecture and ER diagram etc of current implementation."*
 
-<!-- IMAGE: Chat input bar showing the Enhance Prompt icon -->
+![Chat input bar showing the Enhance Prompt icon](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image6.png)
 
 3. Bob rewrites your prompt into a more detailed version. Review it and press **Enter**
 
-<!-- IMAGE: Bob's enhanced prompt shown in the chat -->
+![Bob's enhanced prompt shown in the chat](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image7.png)
 
 4. Bob creates a task list and starts working. Click **Approve** for each task as it appears
 
-<!-- IMAGE: Bob's task list with Approve buttons -->
+![Bob's task list with Approve buttons](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image8.png)
 
 5. When Bob finishes, right-click the generated `.md` file in Explorer and select **Open Preview**
 
-<!-- IMAGE: Right-click menu on the .md file showing Open Preview -->
+![Right-click menu on the .md file showing Open Preview](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image9.png)
 
-<!-- IMAGE: Documentation rendered in the preview panel -->
+![Documentation rendered in the preview panel](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image10.png)
 
 6. Right-click any `.puml` file in Explorer and select **Preview PlantUML File** to see the diagrams
 
-<!-- IMAGE: Right-click menu on a .puml file showing Preview PlantUML File -->
+![Right-click menu on a .puml file showing Preview PlantUML File](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image11.png)
 
-<!-- IMAGE: Sequence diagram rendered in the PlantUML preview -->
+![Sequence diagram rendered in the PlantUML preview](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image12.png)
 
 ---
 
@@ -203,7 +203,7 @@ Before you run anything — open `.bob/skills/java-upgrade/SKILL.md` and read it
 
 1. In the Bob chat, type `/java-upgrade` and press **Enter**
 
-<!-- IMAGE: /java-upgrade typed in the Bob chat with Bob activating the skill -->
+![/java-upgrade typed in the Bob chat with Bob activating the skill](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image13.png)
 
 2. Bob will ask you to confirm two things:
    - Project path → type `legacy-netbanking`
@@ -211,11 +211,11 @@ Before you run anything — open `.bob/skills/java-upgrade/SKILL.md` and read it
 
 3. Bob works through the upgrade — updating `pom.xml`, running `mvn rewrite:run`, fixing any dependency issues. Approve each task
 
-<!-- IMAGE: Bob's task list for the java-upgrade skill — showing pom.xml edit and mvn rewrite:run steps -->
+![Bob's task list for the java-upgrade skill — showing pom.xml edit and mvn rewrite:run steps](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image14.png)
 
 4. When done, Bob creates `legacy-netbanking/java-upgrade-report.md`. Open it in Preview to see the Mermaid flowchart of every change that was applied
 
-<!-- IMAGE: java-upgrade-report.md open in Preview showing the Mermaid audit flowchart -->
+![java-upgrade-report.md open in Preview showing the Mermaid audit flowchart](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image15.png)
 
 > If `mvn` is not installed, see section 2.2.
 
@@ -231,31 +231,31 @@ This step uses the **Modernization Architect** custom mode backed by 6 rule file
 
 1. Click the gear icon (Settings) at the bottom-left of Bob IDE and select **Modes**
 
-<!-- IMAGE: Settings gear icon at bottom-left of Bob IDE -->
+![Settings gear icon at bottom-left of Bob IDE](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image16.png)
 
 2. Find **Modernization Architect** in the list and open it
 
-<!-- IMAGE: Modes list with Modernization Architect visible -->
+![Modes list with Modernization Architect visible](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image17.png)
 
 3. Read the Role Definition. This text is what tells Bob how to think and behave during the migration
 
-<!-- IMAGE: Role Definition text of the Modernization Architect mode -->
+![Role Definition text of the Modernization Architect mode](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image18.png)
 
 **Step B — Look at the Rules**
 
 4. In the Explorer panel, expand `.bob/rules-modernization-architect/`. You will see 6 XML files
 
-<!-- IMAGE: Explorer showing .bob/rules-modernization-architect/ expanded with 6 files listed -->
+![Explorer showing .bob/rules-modernization-architect/ expanded with 6 files listed](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image19.png)
 
 5. Open one of them. You will see how architecture decisions, migration constraints, and code patterns are written in plain XML. This is how you bake your firm's standards into Bob for any project
 
-<!-- IMAGE: A rule file open in the editor showing the XML structure -->
+![A rule file open in the editor showing the XML structure](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image20.png)
 
 **Step C — Run the Migration**
 
 6. Click the mode selector at the bottom-right and select **Modernization Architect**
 
-<!-- IMAGE: Mode selector showing Modernization Architect selected -->
+![Mode selector showing Modernization Architect selected](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image21.png)
 
 7. Type this prompt and press **Enter**:
 
@@ -263,11 +263,11 @@ This step uses the **Modernization Architect** custom mode backed by 6 rule file
 
 8. Bob produces a Todo list covering the full migration. Approve each task as it runs
 
-<!-- IMAGE: Bob's Todo list for the modernization showing all the phases -->
+![Bob's Todo list for the modernization showing all the phases](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image22.png)
 
 9. When complete, check the Explorer panel — you will see a new `modern-netbanking/` folder with the fully migrated project
 
-<!-- IMAGE: Explorer showing the new modern-netbanking/ folder structure -->
+![Explorer showing the new modern-netbanking/ folder structure](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image23.png)
 
 > If Bob stops mid-way, type: *"Complete remaining tasks from the todo list"*
 
@@ -281,9 +281,9 @@ Still in **Modernization Architect** mode, type:
 
 Bob generates a `Dockerfile`, Kubernetes YAML manifests, and a `deploy.sh` script.
 
-<!-- IMAGE: Explorer showing the generated deployment files -->
+![Explorer showing the generated deployment files](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image24.png)
 
-<!-- IMAGE: Dockerfile or Kubernetes manifest open in the editor -->
+![Dockerfile or Kubernetes manifest open in the editor](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image25.png)
 
 ---
 
@@ -306,12 +306,12 @@ Bob generates a `Dockerfile`, Kubernetes YAML manifests, and a `deploy.sh` scrip
 ### 6.1 Maven or SDKMAN not installed
 Switch to **Agent** mode and type: *"Install Maven"* or *"Install SDKMAN"*
 
-<!-- IMAGE: Agent mode chat with Install SDKMAN typed -->
+![Agent mode chat with Install SDKMAN typed](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image26.png)
 
 ### 6.2 Build fails during migration
 Click **Fix it** next to the error. Bob reads the failure and applies a fix automatically.
 
-<!-- IMAGE: Fix it button shown next to a build error in Bob IDE -->
+![Fix it button shown next to a build error in Bob IDE](https://raw.githubusercontent.com/ibm-self-serve-assets/java-modernization-lab/main/images/image27.png)
 
 ### 6.3 Bob stops before finishing
 Type: *"Complete remaining tasks from the todo list"*
