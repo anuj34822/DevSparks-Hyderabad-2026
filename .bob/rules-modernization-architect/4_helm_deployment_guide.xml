@@ -1,0 +1,970 @@
+<helm_deployment_guide>
+  <overview>
+    Comprehensive guide for creating Helm charts to deploy the modernized ABC Bank application
+    on Kubernetes/OpenShift. This includes all required manifests, configuration, and deployment procedures.
+  </overview>
+
+  <critical_requirements>
+    <requirement priority="critical">
+      <rule>ALL Kubernetes manifests MUST be Helm-templated</rule>
+      <rationale>No standalone YAML files - everything must go through Helm</rationale>
+      <forbidden>Raw Kubernetes YAML files outside Helm templates</forbidden>
+    </requirement>
+
+    <requirement priority="critical">
+      <rule>PostgreSQL MUST use emptyDir volume ONLY</rule>
+      <rationale>No PersistentVolumeClaims allowed</rationale>
+      <implementation>Use Deployment (not StatefulSet) with emptyDir volume</implementation>
+    </requirement>
+
+    <requirement priority="critical">
+      <rule>Database credentials MUST be in Kubernetes Secrets</rule>
+      <rationale>Never hardcode credentials in manifests</rationale>
+      <implementation>Create secrets.yaml and reference in deployments</implementation>
+    </requirement>
+
+    <requirement priority="high">
+      <rule>Application MUST have health probes</rule>
+      <rationale>Kubernetes needs to know when app is ready</rationale>
+      <implementation>Configure liveness and readiness probes using Actuator endpoints</implementation>
+    </requirement>
+  </critical_requirements>
+
+  <helm_chart_structure>
+    <directory_layout>
+      <![CDATA[
+helm/
+└── abc-bank/
+    ├── Chart.yaml              # Chart metadata
+    ├── values.yaml             # Default configuration values
+    ├── .helmignore            # Files to ignore
+    └── templates/
+        ├── _helpers.tpl        # Template helpers
+        ├── NOTES.txt          # Post-install notes
+        ├── secrets.yaml        # Database credentials
+        ├── postgres-deployment.yaml
+        ├── postgres-service.yaml
+        ├── app-deployment.yaml
+        ├── app-service.yaml
+        └── route.yaml          # OpenShift Route
+      ]]>
+    </directory_layout>
+
+    <file_purposes>
+      <file name="Chart.yaml">
+        Chart metadata including name, version, description
+      </file>
+      <file name="values.yaml">
+        Default configuration values that can be overridden during installation
+      </file>
+      <file name="_helpers.tpl">
+        Reusable template functions for labels, names, etc.
+      </file>
+      <file name="NOTES.txt">
+        Instructions displayed after helm install
+      </file>
+      <file name="secrets.yaml">
+        Kubernetes Secret for database credentials
+      </file>
+      <file name="postgres-deployment.yaml">
+        PostgreSQL Deployment with emptyDir volume
+      </file>
+      <file name="postgres-service.yaml">
+        Service to expose PostgreSQL within cluster
+      </file>
+      <file name="app-deployment.yaml">
+        Spring Boot application Deployment
+      </file>
+      <file name="app-service.yaml">
+        Service to expose application
+      </file>
+      <file name="route.yaml">
+        OpenShift Route for external access
+      </file>
+    </file_purposes>
+  </helm_chart_structure>
+
+  <chart_yaml>
+    <description>Chart metadata file</description>
+    <template>
+      <![CDATA[
+apiVersion: v2
+name: abc-bank
+description: Modernized ABC Bank Application - Spring Boot with PostgreSQL
+type: application
+version: 1.0.0
+appVersion: "2.0.0"
+
+keywords:
+  - banking
+  - spring-boot
+  - postgresql
+  - modernization
+
+home: https://github.com/abcbank/abc-bank-modernized
+sources:
+  - https://github.com/abcbank/abc-bank-modernized
+
+maintainers:
+  - name: ABC Bank DevOps Team
+    email: devops@abcbank.com
+
+icon: https://example.com/abc-bank-icon.png
+
+annotations:
+  category: Banking
+  licenses: Apache-2.0
+      ]]>
+    </template>
+  </chart_yaml>
+
+  <values_yaml>
+    <description>Default configuration values</description>
+    <template>
+      <![CDATA[
+# Default values for abc-bank Helm chart
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Global settings
+global:
+  nameOverride: ""
+  fullnameOverride: ""
+
+# Application configuration
+app:
+  name: abc-bank
+  replicaCount: 1
+  
+  image:
+    repository: abc-bank-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: ClusterIP
+    port: 8080
+    targetPort: 8080
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  
+  # Health check configuration
+  livenessProbe:
+    httpGet:
+      path: /actuator/health/liveness
+      port: 8080
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  
+  readinessProbe:
+    httpGet:
+      path: /actuator/health/readiness
+      port: 8080
+    initialDelaySeconds: 30
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+  
+  # Environment variables
+  env:
+    javaOpts: "-Xmx384m -Xms256m"
+    springProfile: "prod"
+    logLevel: "INFO"
+
+# PostgreSQL configuration
+postgresql:
+  enabled: true
+  
+  image:
+    repository: postgres
+    tag: "15-alpine"
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: ClusterIP
+    port: 5432
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  
+  # CRITICAL: emptyDir configuration (no PVC)
+  persistence:
+    enabled: false  # Disable PVC
+    storageClass: ""
+  
+  # Volume configuration
+  volume:
+    name: postgres-data
+    mountPath: /var/lib/postgresql/data
+    subPath: pgdata  # Avoid permission issues
+  
+  # Health checks
+  livenessProbe:
+    exec:
+      command:
+        - /bin/sh
+        - -c
+        - pg_isready -U $POSTGRES_USER
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  
+  readinessProbe:
+    exec:
+      command:
+        - /bin/sh
+        - -c
+        - pg_isready -U $POSTGRES_USER
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+# Database credentials (will be stored in Secret)
+database:
+  name: abcbank
+  username: abcbank
+  password: changeme123  # Change in production!
+
+# OpenShift Route configuration
+route:
+  enabled: true
+  host: ""  # Auto-generated if empty
+  path: /
+  tls:
+    enabled: true
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+
+# Service Account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Pod annotations
+podAnnotations: {}
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 1000
+
+# Container security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+      ]]>
+    </template>
+  </values_yaml>
+
+  <helpers_tpl>
+    <description>Reusable template helpers</description>
+    <template>
+      <![CDATA[
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "abc-bank.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Create a default fully qualified app name.
+*/}}
+{{- define "abc-bank.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create chart name and version as used by the chart label.
+*/}}
+{{- define "abc-bank.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Common labels
+*/}}
+{{- define "abc-bank.labels" -}}
+helm.sh/chart: {{ include "abc-bank.chart" . }}
+{{ include "abc-bank.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
+Selector labels
+*/}}
+{{- define "abc-bank.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "abc-bank.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "abc-bank.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "abc-bank.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+PostgreSQL service name
+*/}}
+{{- define "abc-bank.postgresql.fullname" -}}
+{{- printf "%s-postgres" (include "abc-bank.fullname" .) }}
+{{- end }}
+
+{{/*
+Database connection URL
+*/}}
+{{- define "abc-bank.database.url" -}}
+{{- printf "jdbc:postgresql://%s:%d/%s" (include "abc-bank.postgresql.fullname" .) (.Values.postgresql.service.port | int) .Values.database.name }}
+{{- end }}
+      ]]>
+    </template>
+  </helpers_tpl>
+
+  <secrets_yaml>
+    <description>Kubernetes Secret for database credentials</description>
+    <template>
+      <![CDATA[
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "abc-bank.fullname" . }}-db-secret
+  labels:
+    {{- include "abc-bank.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+type: Opaque
+stringData:
+  database-name: {{ .Values.database.name | quote }}
+  database-user: {{ .Values.database.username | quote }}
+  database-password: {{ .Values.database.password | quote }}
+      ]]>
+    </template>
+  </secrets_yaml>
+
+  <postgres_deployment_yaml>
+    <description>PostgreSQL Deployment with emptyDir volume</description>
+    <critical_note>
+      MUST use emptyDir volume, NOT PersistentVolumeClaim.
+      Use Deployment, NOT StatefulSet.
+    </critical_note>
+    <template>
+      <![CDATA[
+{{- if .Values.postgresql.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "abc-bank.postgresql.fullname" . }}
+  labels:
+    {{- include "abc-bank.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate  # Important for database
+  selector:
+    matchLabels:
+      {{- include "abc-bank.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: database
+  template:
+    metadata:
+      labels:
+        {{- include "abc-bank.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: database
+    spec:
+      containers:
+      - name: postgresql
+        image: "{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
+        imagePullPolicy: {{ .Values.postgresql.image.pullPolicy }}
+        ports:
+        - name: postgresql
+          containerPort: {{ .Values.postgresql.service.port }}
+          protocol: TCP
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "abc-bank.fullname" . }}-db-secret
+              key: database-name
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "abc-bank.fullname" . }}-db-secret
+              key: database-user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "abc-bank.fullname" . }}-db-secret
+              key: database-password
+        - name: PGDATA
+          value: {{ .Values.postgresql.volume.mountPath }}/{{ .Values.postgresql.volume.subPath }}
+        volumeMounts:
+        - name: {{ .Values.postgresql.volume.name }}
+          mountPath: {{ .Values.postgresql.volume.mountPath }}
+        resources:
+          {{- toYaml .Values.postgresql.resources | nindent 10 }}
+        {{- with .Values.postgresql.livenessProbe }}
+        livenessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.postgresql.readinessProbe }}
+        readinessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      volumes:
+      - name: {{ .Values.postgresql.volume.name }}
+        emptyDir: {}  # CRITICAL: emptyDir only, no PVC!
+{{- end }}
+      ]]>
+    </template>
+  </postgres_deployment_yaml>
+
+  <postgres_service_yaml>
+    <description>Service to expose PostgreSQL</description>
+    <template>
+      <![CDATA[
+{{- if .Values.postgresql.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "abc-bank.postgresql.fullname" . }}
+  labels:
+    {{- include "abc-bank.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  type: {{ .Values.postgresql.service.type }}
+  ports:
+  - port: {{ .Values.postgresql.service.port }}
+    targetPort: postgresql
+    protocol: TCP
+    name: postgresql
+  selector:
+    {{- include "abc-bank.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+{{- end }}
+      ]]>
+    </template>
+  </postgres_service_yaml>
+
+  <app_deployment_yaml>
+    <description>Spring Boot application Deployment</description>
+    <template>
+      <![CDATA[
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "abc-bank.fullname" . }}
+  labels:
+    {{- include "abc-bank.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  replicas: {{ .Values.app.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "abc-bank.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "abc-bank.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: backend
+    spec:
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "abc-bank.serviceAccountName" . }}
+      containers:
+      - name: {{ .Chart.Name }}
+        {{- with .Values.securityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        image: "{{ .Values.app.image.repository }}:{{ .Values.app.image.tag }}"
+        imagePullPolicy: {{ .Values.app.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.app.service.targetPort }}
+          protocol: TCP
+        env:
+        # Database connection
+        - name: SPRING_DATASOURCE_URL
+          value: {{ include "abc-bank.database.url" . | quote }}
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "abc-bank.fullname" . }}-db-secret
+              key: database-user
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "abc-bank.fullname" . }}-db-secret
+              key: database-password
+        
+        # JPA/Hibernate configuration
+        - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+          value: "update"
+        - name: SPRING_JPA_SHOW_SQL
+          value: "false"
+        - name: SPRING_SQL_INIT_MODE
+          value: "always"
+        
+        # Application configuration
+        - name: SPRING_PROFILES_ACTIVE
+          value: {{ .Values.app.env.springProfile | quote }}
+        - name: JAVA_OPTS
+          value: {{ .Values.app.env.javaOpts | quote }}
+        - name: LOGGING_LEVEL_COM_ABCBANK
+          value: {{ .Values.app.env.logLevel | quote }}
+        
+        # Server configuration
+        - name: SERVER_PORT
+          value: {{ .Values.app.service.targetPort | quote }}
+        
+        resources:
+          {{- toYaml .Values.app.resources | nindent 10 }}
+        
+        {{- with .Values.app.livenessProbe }}
+        livenessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        
+        {{- with .Values.app.readinessProbe }}
+        readinessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      ]]>
+    </template>
+  </app_deployment_yaml>
+
+  <app_service_yaml>
+    <description>Service to expose application</description>
+    <template>
+      <![CDATA[
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "abc-bank.fullname" . }}
+  labels:
+    {{- include "abc-bank.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  type: {{ .Values.app.service.type }}
+  ports:
+  - port: {{ .Values.app.service.port }}
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    {{- include "abc-bank.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+      ]]>
+    </template>
+  </app_service_yaml>
+
+  <route_yaml>
+    <description>OpenShift Route for external access</description>
+    <template>
+      <![CDATA[
+{{- if .Values.route.enabled }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ include "abc-bank.fullname" . }}
+  labels:
+    {{- include "abc-bank.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.route.host }}
+  host: {{ .Values.route.host }}
+  {{- end }}
+  path: {{ .Values.route.path }}
+  to:
+    kind: Service
+    name: {{ include "abc-bank.fullname" . }}
+    weight: 100
+  port:
+    targetPort: http
+  {{- if .Values.route.tls.enabled }}
+  tls:
+    termination: {{ .Values.route.tls.termination }}
+    insecureEdgeTerminationPolicy: {{ .Values.route.tls.insecureEdgeTerminationPolicy }}
+  {{- end }}
+  wildcardPolicy: None
+{{- end }}
+      ]]>
+    </template>
+  </route_yaml>
+
+  <notes_txt>
+    <description>Post-installation instructions</description>
+    <template>
+      <![CDATA[
+Thank you for installing {{ .Chart.Name }}!
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+1. Get the application URL:
+
+{{- if .Values.route.enabled }}
+  export ROUTE_HOST=$(oc get route {{ include "abc-bank.fullname" . }} -o jsonpath='{.spec.host}')
+  echo "Application URL: https://$ROUTE_HOST"
+{{- else }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "abc-bank.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  echo "Visit http://127.0.0.1:8080 to use your application"
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:8080
+{{- end }}
+
+2. Demo Credentials:
+   Username: john.doe
+   Password: password
+
+3. Check application health:
+   curl https://$ROUTE_HOST/actuator/health
+
+4. View application logs:
+   kubectl logs -f deployment/{{ include "abc-bank.fullname" . }}
+
+5. View PostgreSQL logs:
+   kubectl logs -f deployment/{{ include "abc-bank.postgresql.fullname" . }}
+
+IMPORTANT NOTES:
+- PostgreSQL uses emptyDir storage - data will be lost on pod restart
+- This is a demo deployment - not suitable for production
+- Change database password in values.yaml for production use
+      ]]>
+    </template>
+  </notes_txt>
+
+  <deployment_workflow>
+    <title>Helm Deployment Workflow</title>
+    <description>
+      Step-by-step process to deploy the application using Helm
+    </description>
+
+    <step number="1">
+      <action>Build Docker images</action>
+      <commands>
+        <command>cd backend && docker build -t abc-bank-backend:latest .</command>
+        <command>docker tag abc-bank-backend:latest your-registry/abc-bank-backend:latest</command>
+        <command>docker push your-registry/abc-bank-backend:latest</command>
+      </commands>
+      <note>
+        For local testing, you can use locally built images without pushing to registry
+      </note>
+    </step>
+
+    <step number="2">
+      <action>Validate Helm chart</action>
+      <commands>
+        <command>helm lint helm/abc-bank</command>
+        <command>helm template abc-bank helm/abc-bank --debug</command>
+      </commands>
+      <expected_output>
+        No errors or warnings from helm lint
+        Valid Kubernetes manifests from helm template
+      </expected_output>
+    </step>
+
+    <step number="3">
+      <action>Dry-run installation</action>
+      <commands>
+        <command>helm install abc-bank helm/abc-bank --dry-run --debug</command>
+      </commands>
+      <purpose>
+        Verify manifests without actually deploying
+      </purpose>
+    </step>
+
+    <step number="4">
+      <action>Install Helm chart</action>
+      <commands>
+        <command>helm install abc-bank helm/abc-bank</command>
+        <command>helm install abc-bank helm/abc-bank --set database.password=securepassword</command>
+        <command>helm install abc-bank helm/abc-bank -f custom-values.yaml</command>
+      </commands>
+    </step>
+
+    <step number="5">
+      <action>Monitor deployment</action>
+      <commands>
+        <command>kubectl get pods -w</command>
+        <command>kubectl get all</command>
+        <command>helm status abc-bank</command>
+      </commands>
+      <expected_sequence>
+        1. PostgreSQL pod starts and becomes ready
+        2. Application pod starts
+        3. Application connects to PostgreSQL
+        4. Health checks pass
+        5. Route becomes accessible
+      </expected_sequence>
+    </step>
+
+    <step number="6">
+      <action>Verify deployment</action>
+      <commands>
+        <command>kubectl logs deployment/abc-bank-postgres</command>
+        <command>kubectl logs deployment/abc-bank</command>
+        <command>curl https://$(oc get route abc-bank -o jsonpath='{.spec.host}')/actuator/health</command>
+      </commands>
+    </step>
+
+    <step number="7">
+      <action>Access application</action>
+      <commands>
+        <command>export ROUTE_HOST=$(oc get route abc-bank -o jsonpath='{.spec.host}')</command>
+        <command>echo "Application URL: https://$ROUTE_HOST"</command>
+        <command>open https://$ROUTE_HOST</command>
+      </commands>
+    </step>
+  </deployment_workflow>
+
+  <helm_commands_reference>
+    <title>Common Helm Commands</title>
+    
+    <command_group name="Installation">
+      <command>
+        <syntax>helm install [RELEASE_NAME] [CHART]</syntax>
+        <example>helm install abc-bank helm/abc-bank</example>
+        <description>Install a chart</description>
+      </command>
+      
+      <command>
+        <syntax>helm install [RELEASE_NAME] [CHART] --set key=value</syntax>
+        <example>helm install abc-bank helm/abc-bank --set database.password=secret</example>
+        <description>Install with custom values</description>
+      </command>
+      
+      <command>
+        <syntax>helm install [RELEASE_NAME] [CHART] -f values.yaml</syntax>
+        <example>helm install abc-bank helm/abc-bank -f prod-values.yaml</example>
+        <description>Install with values file</description>
+      </command>
+    </command_group>
+
+    <command_group name="Upgrade">
+      <command>
+        <syntax>helm upgrade [RELEASE_NAME] [CHART]</syntax>
+        <example>helm upgrade abc-bank helm/abc-bank</example>
+        <description>Upgrade a release</description>
+      </command>
+      
+      <command>
+        <syntax>helm upgrade --install [RELEASE_NAME] [CHART]</syntax>
+        <example>helm upgrade --install abc-bank helm/abc-bank</example>
+        <description>Install or upgrade</description>
+      </command>
+    </command_group>
+
+    <command_group name="Uninstall">
+      <command>
+        <syntax>helm uninstall [RELEASE_NAME]</syntax>
+        <example>helm uninstall abc-bank</example>
+        <description>Uninstall a release</description>
+      </command>
+    </command_group>
+
+    <command_group name="Information">
+      <command>
+        <syntax>helm list</syntax>
+        <description>List all releases</description>
+      </command>
+      
+      <command>
+        <syntax>helm status [RELEASE_NAME]</syntax>
+        <example>helm status abc-bank</example>
+        <description>Show release status</description>
+      </command>
+      
+      <command>
+        <syntax>helm get values [RELEASE_NAME]</syntax>
+        <example>helm get values abc-bank</example>
+        <description>Show values used</description>
+      </command>
+      
+      <command>
+        <syntax>helm get manifest [RELEASE_NAME]</syntax>
+        <example>helm get manifest abc-bank</example>
+        <description>Show generated manifests</description>
+      </command>
+    </command_group>
+
+    <command_group name="Validation">
+      <command>
+        <syntax>helm lint [CHART]</syntax>
+        <example>helm lint helm/abc-bank</example>
+        <description>Validate chart</description>
+      </command>
+      
+      <command>
+        <syntax>helm template [RELEASE_NAME] [CHART]</syntax>
+        <example>helm template abc-bank helm/abc-bank</example>
+        <description>Render templates locally</description>
+      </command>
+      
+      <command>
+        <syntax>helm install [RELEASE_NAME] [CHART] --dry-run --debug</syntax>
+        <example>helm install abc-bank helm/abc-bank --dry-run --debug</example>
+        <description>Simulate installation</description>
+      </command>
+    </command_group>
+  </helm_commands_reference>
+
+  <troubleshooting>
+    <issue>
+      <problem>PostgreSQL pod not starting</problem>
+      <diagnosis>
+        <command>kubectl describe pod abc-bank-postgres-xxx</command>
+        <command>kubectl logs abc-bank-postgres-xxx</command>
+      </diagnosis>
+      <common_causes>
+        <cause>Image pull error</cause>
+        <cause>Permission issues with emptyDir</cause>
+        <cause>Resource limits too low</cause>
+      </common_causes>
+      <solutions>
+        <solution>Verify image name and tag</solution>
+        <solution>Check pod security context</solution>
+        <solution>Increase resource limits</solution>
+      </solutions>
+    </issue>
+
+    <issue>
+      <problem>Application pod not starting</problem>
+      <diagnosis>
+        <command>kubectl describe pod abc-bank-xxx</command>
+        <command>kubectl logs abc-bank-xxx</command>
+      </diagnosis>
+      <common_causes>
+        <cause>Cannot connect to PostgreSQL</cause>
+        <cause>Database credentials incorrect</cause>
+        <cause>Image not found</cause>
+      </common_causes>
+      <solutions>
+        <solution>Verify PostgreSQL service is running</solution>
+        <solution>Check secret values</solution>
+        <solution>Verify image repository and tag</solution>
+      </solutions>
+    </issue>
+
+    <issue>
+      <problem>Health checks failing</problem>
+      <diagnosis>
+        <command>kubectl logs abc-bank-xxx</command>
+        <command>kubectl exec abc-bank-xxx -- curl localhost:8080/actuator/health</command>
+      </diagnosis>
+      <common_causes>
+        <cause>Application not fully started</cause>
+        <cause>Database connection issues</cause>
+        <cause>Incorrect health check path</cause>
+      </common_causes>
+      <solutions>
+        <solution>Increase initialDelaySeconds</solution>
+        <solution>Check database connectivity</solution>
+        <solution>Verify Actuator is enabled</solution>
+      </solutions>
+    </issue>
+
+    <issue>
+      <problem>Route not accessible</problem>
+      <diagnosis>
+        <command>oc get route abc-bank</command>
+        <command>curl -v https://$(oc get route abc-bank -o jsonpath='{.spec.host}')</command>
+      </diagnosis>
+      <common_causes>
+        <cause>Route not created</cause>
+        <cause>Service not exposing correct port</cause>
+        <cause>TLS configuration issues</cause>
+      </common_causes>
+      <solutions>
+        <solution>Verify route.enabled=true in values</solution>
+        <solution>Check service selector matches pods</solution>
+        <solution>Review TLS termination settings</solution>
+      </solutions>
+    </issue>
+  </troubleshooting>
+
+  <validation_checklist>
+    <item>Helm chart validates with helm lint</item>
+    <item>Templates render correctly with helm template</item>
+    <item>PostgreSQL Deployment uses emptyDir (no PVC)</item>
+    <item>Database credentials stored in Secret</item>
+    <item>Application references Secret for credentials</item>
+    <item>Health probes configured correctly</item>
+    <item>Resource limits defined</item>
+    <item>Labels and selectors match</item>
+    <item>Route configured for external access</item>
+    <item>NOTES.txt provides clear instructions</item>
+  </validation_checklist>
+</helm_deployment_guide>
+
+<!-- Made with Bob -->
