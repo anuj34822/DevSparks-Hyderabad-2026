@@ -50,22 +50,34 @@ Install IBM Bob from: `https://bob.ibm.com/docs/ide/getting-started/install`
 
 **OpenJDK 17**
 ```sh
-brew install openjdk@17                              # macOS
-sudo apt update && sudo apt install openjdk-17-jdk   # Ubuntu/Debian
-sudo dnf install java-17-openjdk-devel               # RHEL
+# macOS
+brew install openjdk@17
+# Ubuntu/Debian
+sudo apt update && sudo apt install openjdk-17-jdk
+# RHEL
+sudo dnf install java-17-openjdk-devel
+# Windows (winget)
+winget install --id Microsoft.OpenJDK.17
 ```
 
 **Maven**
 ```sh
-brew install maven                                   # macOS
-sudo apt update && sudo apt install maven            # Ubuntu/Debian
-sudo dnf install maven                               # RHEL
+# macOS
+brew install maven
+# Ubuntu/Debian
+sudo apt update && sudo apt install maven
+# RHEL
+sudo dnf install maven
+# Windows (winget)
+winget install --id Apache.Maven
 ```
 
-**SDKMAN**
+**SDKMAN** *(macOS / Linux only)*
 ```sh
-curl -s "https://get.sdkman.io" | bash               # macOS
-curl -sL https://get.sdkman.io | sudo bash           # Ubuntu/Debian/RHEL
+# macOS
+curl -s "https://get.sdkman.io" | bash
+# Ubuntu/Debian/RHEL
+curl -sL https://get.sdkman.io | sudo bash
 ```
 
 ### 2.3 Install PlantUML Plugin
@@ -127,8 +139,13 @@ You will use each of these during the lab. By the end, you will understand how t
 
 1. Clone the repo:
    ```sh
+   # macOS / Linux
+   git clone https://github.com/anuj34822/java-modernization-lab
+
+   # Windows (Command Prompt or PowerShell)
    git clone https://github.com/anuj34822/java-modernization-lab
    ```
+   > If git is not installed on Windows: `winget install --id Git.Git`
 
 2. Open IBM Bob IDE. Go to **File → Open Folder** and select the `java-modernization-lab` folder
 
