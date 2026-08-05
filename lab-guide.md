@@ -189,4 +189,3 @@ Type: *"Complete remaining tasks from the todo list"* to resume exactly where it
 
 ---
 
-*IBM Service Engineering Lab · DevSparks Hyderabad 2026*
