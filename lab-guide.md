@@ -91,7 +91,7 @@ Install IBM Bob from: `https://bob.ibm.com/docs/ide/getting-started/install`
 
 ### Install PlantUML Plugin
 
-You need this to preview the diagrams Bob generates.
+You need this to preview the diagrams Bob generates in Step 2.
 
 1. Click the **Extensions** icon in the Bob IDE sidebar
 2. Search for **PlantUML**
@@ -99,45 +99,13 @@ You need this to preview the diagrams Bob generates.
 
 ![PlantUML Markdown Preview extension in the Extensions panel](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image1.png)
 
-### Optional — Install these if you want to run local builds
-
-**OpenJDK 17**
-```sh
-# macOS
-brew install openjdk@17
-# Ubuntu/Debian
-sudo apt update && sudo apt install openjdk-17-jdk
-# RHEL
-sudo dnf install java-17-openjdk-devel
-# Windows (winget)
-winget install --id Microsoft.OpenJDK.17
-```
-
-**Maven**
-```sh
-# macOS
-brew install maven
-# Ubuntu/Debian
-sudo apt update && sudo apt install maven
-# RHEL
-sudo dnf install maven
-# Windows (winget)
-winget install --id Apache.Maven
-```
-
-**SDKMAN** *(macOS / Linux only)*
-```sh
-# macOS
-curl -s "https://get.sdkman.io" | bash
-# Ubuntu/Debian/RHEL
-curl -sL https://get.sdkman.io | sudo bash
-```
-
 ---
 
 ## Hands-on Lab Steps
 
 > **Before you begin:** Make sure you are logged in to IBM Bob IDE. Open Bob and confirm your account is active — you should see your name or profile icon at the bottom-left of the IDE.
+
+> **Note:** Almost everything in this lab is done through prompts. You type a sentence or a command in Bob — Bob does the rest. The only exception is Step 3, where Maven and Java 17 must be installed on your machine so Bob can run the build. Instructions for that are included at the start of Step 3.
 
 ---
 
@@ -218,11 +186,51 @@ curl -sL https://get.sdkman.io | sudo bash
 
 **Goal:** Upgrade the project from Java 8 to Java 17 using the `/java-upgrade` Bob skill.
 
-> **Pre-check — verify Maven is available before starting:**
-> ```sh
-> mvn -version
-> ```
-> If this command is not found, install Maven first — see the Pre-requisites section.
+#### Before you start this step — install Java 17 and Maven
+
+The `/java-upgrade` skill runs real Maven commands behind the scenes (`mvn rewrite:run`, `mvn clean package`). Bob handles everything else through prompts, but your machine needs these two tools installed.
+
+**OpenJDK 17**
+```sh
+# macOS
+brew install openjdk@17
+# Ubuntu/Debian
+sudo apt update && sudo apt install openjdk-17-jdk
+# RHEL
+sudo dnf install java-17-openjdk-devel
+# Windows (winget)
+winget install --id Microsoft.OpenJDK.17
+```
+
+**Maven**
+```sh
+# macOS
+brew install maven
+# Ubuntu/Debian
+sudo apt update && sudo apt install maven
+# RHEL
+sudo dnf install maven
+# Windows (winget)
+winget install --id Apache.Maven
+```
+
+**SDKMAN** *(macOS / Linux — alternative way to install both)*
+```sh
+curl -s "https://get.sdkman.io" | bash
+# then:
+sdk install java 17-tem
+sdk install maven
+```
+
+Once installed, verify both are available:
+```sh
+java -version
+mvn -version
+```
+
+Both commands should return version numbers before you proceed.
+
+---
 
 Before you run anything, open `.bob/skills/java-upgrade/SKILL.md` and read it. This is the Skill Bob will follow. You will see every step: update `pom.xml`, add the OpenRewrite plugin, run `mvn rewrite:run`, fix dependency conflicts, validate the build, write an audit report. Reading it now helps you understand what Bob is doing and why.
 
