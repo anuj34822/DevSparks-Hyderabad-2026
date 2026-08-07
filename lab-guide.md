@@ -3,11 +3,6 @@
 
 > **Duration:** 60 minutes · **Hands-on · IBM Bob IDE**
 
-## Revision Chart
-| Version | Primary Author | Description | Date |
-| :--- | :--- | :--- | :--- |
-| 1.0 | Anuj Shrivastava | Initial Version — no premium package, Bob-native skill approach | Aug 2026 |
-
 ---
 
 ## Contents
