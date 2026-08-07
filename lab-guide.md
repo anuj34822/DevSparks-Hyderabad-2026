@@ -117,17 +117,17 @@ You need this to preview the diagrams Bob generates in Step 2.
    ```
    https://github.com/anuj34822/java-modernization-lab
    ```
-   Click **Code → Download ZIP** and extract it to your **Documents** folder.
+   Click **Code → Download ZIP**. Extract it — you will get a folder named `java-modernization-lab-main`.
 
 ![GitHub repo showing Code → Download ZIP](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image2.png)
 
-2. Open **IBM Bob IDE** and click **Open...** from the Start menu. Navigate to the extracted `java-modernization-lab` folder and click **Open**.
+2. Open **IBM Bob IDE**. You will see the Welcome screen. Click **Open...** from the Start menu.
 
-![Bob IDE with the project open — Explorer showing .bob/, legacy-netbanking/, images/, lab-guide.md](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image3.png)
+![Bob IDE Welcome screen with Open highlighted](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image3.png)
 
-3. Navigate to the extracted `java-modernization-lab` folder and click **Open**.
+3. Navigate to the extracted `java-modernization-lab-main` folder and click **Open**.
 
-![Folder picker showing java-modernization-lab selected](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image4.png)
+![Folder picker showing java-modernization-lab-main selected](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image4.png)
 
 4. Bob may show a **Restricted Mode** banner at the top. Click **Manage** → **Trust** to enable all features.
 
@@ -136,7 +136,7 @@ You need this to preview the diagrams Bob generates in Step 2.
 5. Confirm the Explorer panel on the left shows:
 
    ```
-   java-modernization-lab/
+   java-modernization-lab-main/
    ├── .bob/
    ├── images/
    ├── legacy-netbanking/
