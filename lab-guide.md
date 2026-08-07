@@ -163,19 +163,23 @@ You need this to preview the diagrams Bob generates in Step 2.
 
 ![Chat input showing the prompt typed and ready to send](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image8.png)
 
-3. Bob creates a task list and starts working. Click **Approve** for each task as it appears
+3. Bob automatically expands your prompt into a detailed task plan. Review it and press **Enter** to confirm
 
-<!-- image9: Bob's task list with Approve buttons -->
+![Bob's expanded prompt ready to run](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image9.png)
 
-4. When Bob finishes, right-click the generated `.md` file in Explorer and select **Open Preview**
+4. Bob creates a task list and starts working. Click **Approve** for each task as it appears
 
-<!-- image10: right-click .md file showing Open Preview -->
+<!-- image10: Bob's task list with Approve buttons -->
 
-<!-- image11: documentation rendered in Preview panel -->
+5. When Bob finishes, right-click the generated `.md` file in Explorer and select **Open Preview**
 
-5. Right-click any `.puml` file and select **Preview PlantUML File** to see the diagrams
+<!-- image11: right-click .md file showing Open Preview -->
 
-<!-- image12: right-click .puml file showing Preview PlantUML File -->
+<!-- image12: documentation rendered in Preview panel -->
+
+6. Right-click any `.puml` file and select **Preview PlantUML File** to see the diagrams
+
+<!-- image13: right-click .puml file showing Preview PlantUML File -->
 
 ---
 
@@ -235,13 +239,13 @@ Before you run anything, open `.bob/skills/java-upgrade/SKILL.md` and read it. Y
 
 1. In the Bob chat, type `/java-upgrade` and press **Enter**
 
-<!-- image13: /java-upgrade typed in chat -->
+<!-- image14: /java-upgrade typed in chat -->
 
 2. Bob asks you to confirm two things:
    - Project path → type `legacy-netbanking`
    - Target Java version → type `17`
 
-<!-- image14: Bob asking path + version -->
+<!-- image15: Bob asking path + version -->
 
 3. Bob works through the upgrade automatically. Approve each task as it appears:
    - Updates `pom.xml` compiler settings to Java 17
@@ -250,11 +254,11 @@ Before you run anything, open `.bob/skills/java-upgrade/SKILL.md` and read it. Y
    - Fixes any dependency conflicts
    - Runs `mvn clean package` to validate the build
 
-<!-- image15: Bob's upgrade task list -->
+<!-- image16: Bob's upgrade task list -->
 
 4. When complete, Bob creates `legacy-netbanking/java-upgrade-report.md`. Open it in Preview to see the Mermaid flowchart of every change applied
 
-<!-- image16: java-upgrade-report.md in Preview -->
+<!-- image17: java-upgrade-report.md in Preview -->
 
 ---
 
