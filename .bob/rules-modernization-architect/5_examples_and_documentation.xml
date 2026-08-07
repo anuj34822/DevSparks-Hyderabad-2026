@@ -1,0 +1,1238 @@
+<examples_and_documentation>
+  <overview>
+    Complete examples and documentation templates for the ABC Bank modernization project.
+    This includes README structure, API documentation, and complete working examples.
+  </overview>
+
+  <readme_template>
+    <description>Comprehensive README.md for the modernized application</description>
+    <template>
+      <![CDATA[
+# ABC Bank - Modernized Banking Application
+
+A modernized version of the legacy ABC Bank application, transformed from Struts 1.x/JSP/SQLite to Spring Boot 3.x/PostgreSQL with cloud-native deployment on Kubernetes/OpenShift.
+
+## 📋 Table of Contents
+
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Technology Stack](#technology-stack)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+- [Building the Application](#building-the-application)
+- [Running Locally](#running-locally)
+- [Deploying to OpenShift](#deploying-to-openshift)
+- [API Documentation](#api-documentation)
+- [Demo Credentials](#demo-credentials)
+- [Known Limitations](#known-limitations)
+- [Troubleshooting](#troubleshooting)
+
+## 🎯 Overview
+
+ABC Bank is a demonstration of legacy application modernization, showcasing the transformation of a traditional Java web application into a modern, cloud-native microservice.
+
+### Key Features
+
+- ✅ User authentication and authorization
+- ✅ Account management and summary
+- ✅ Transaction history viewing
+- ✅ Fund transfers between accounts
+- ✅ RESTful API design
+- ✅ Cloud-native architecture
+- ✅ Kubernetes/OpenShift deployment
+
+### Modernization Highlights
+
+| Legacy | Modern |
+|--------|--------|
+| Struts 1.x | Spring Boot 3.x |
+| JSP/Servlets | Spring MVC / Thymeleaf |
+| JDBC | Spring Data JPA |
+| SQLite | PostgreSQL |
+| WAR deployment | Containerized (Docker) |
+| Manual deployment | Helm charts |
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     OpenShift/Kubernetes                     │
+│                                                               │
+│  ┌──────────────┐                    ┌──────────────┐       │
+│  │              │                    │              │       │
+│  │  ABC Bank    │◄──────────────────►│ PostgreSQL   │       │
+│  │  (Spring     │   JDBC Connection  │  Database    │       │
+│  │   Boot)      │                    │              │       │
+│  │              │                    │              │       │
+│  └──────┬───────┘                    └──────────────┘       │
+│         │                                                    │
+│         │ Exposed via                                        │
+│         │ OpenShift Route                                    │
+│         ▼                                                    │
+│  ┌──────────────┐                                           │
+│  │   Route      │                                           │
+│  │  (HTTPS)     │                                           │
+│  └──────────────┘                                           │
+└───────────┬─────────────────────────────────────────────────┘
+            │
+            ▼
+     External Users
+```
+
+### Component Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Spring Boot Application               │
+│                                                           │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐ │
+│  │             │    │             │    │             │ │
+│  │ Controllers │───►│  Services   │───►│Repositories │ │
+│  │  (REST/MVC) │    │  (Business  │    │   (JPA)     │ │
+│  │             │    │   Logic)    │    │             │ │
+│  └─────────────┘    └─────────────┘    └──────┬──────┘ │
+│                                                 │        │
+│  ┌─────────────┐    ┌─────────────┐           │        │
+│  │   Spring    │    │   Spring    │           │        │
+│  │  Security   │    │  Actuator   │           │        │
+│  └─────────────┘    └─────────────┘           │        │
+└────────────────────────────────────────────────┼────────┘
+                                                  │
+                                                  ▼
+                                          ┌──────────────┐
+                                          │  PostgreSQL  │
+                                          │   Database   │
+                                          └──────────────┘
+```
+
+## 🛠️ Technology Stack
+
+### Backend
+- **Java**: 17
+- **Framework**: Spring Boot 3.2.0
+- **Build Tool**: Maven 3.9+
+- **Database**: PostgreSQL 15
+- **ORM**: Spring Data JPA / Hibernate
+- **Security**: Spring Security with BCrypt
+- **Monitoring**: Spring Boot Actuator
+
+### Frontend
+- **Option A**: Thymeleaf (Server-side rendering)
+- **Option B**: React 18 / Next.js 14 (SPA)
+
+### DevOps
+- **Containerization**: Docker
+- **Orchestration**: Kubernetes / OpenShift
+- **Deployment**: Helm 3
+- **CI/CD**: (To be configured)
+
+## 📦 Prerequisites
+
+### For Local Development
+- Java 17 or higher
+- Maven 3.9 or higher
+- Docker Desktop
+- PostgreSQL 15 (or use Docker)
+- Git
+
+### For OpenShift Deployment
+- OpenShift CLI (`oc`)
+- Helm 3
+- Access to OpenShift cluster
+- Docker registry access
+
+## 🚀 Getting Started
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/abcbank/abc-bank-modernized.git
+cd abc-bank-modernized
+```
+
+### 2. Set Up Local PostgreSQL
+
+#### Option A: Using Docker
+```bash
+docker run -d \
+  --name abc-bank-postgres \
+  -e POSTGRES_DB=abcbank \
+  -e POSTGRES_USER=abcbank \
+  -e POSTGRES_PASSWORD=changeme \
+  -p 5432:5432 \
+  postgres:15-alpine
+```
+
+#### Option B: Local Installation
+```bash
+# Create database
+createdb abcbank
+
+# Create user
+psql -c "CREATE USER abcbank WITH PASSWORD 'changeme';"
+psql -c "GRANT ALL PRIVILEGES ON DATABASE abcbank TO abcbank;"
+```
+
+## 🔨 Building the Application
+
+### Build with Maven
+
+```bash
+cd backend
+mvn clean package
+```
+
+This will:
+- Compile the Java code
+- Run unit tests
+- Create a JAR file in `target/abc-bank-2.0.0.jar`
+
+### Build Docker Image
+
+```bash
+cd backend
+docker build -t abc-bank-backend:latest .
+```
+
+### Verify Build
+
+```bash
+# Check JAR file
+ls -lh target/*.jar
+
+# Check Docker image
+docker images | grep abc-bank
+```
+
+## 💻 Running Locally
+
+### Using Maven
+
+```bash
+cd backend
+mvn spring-boot:run
+```
+
+### Using JAR
+
+```bash
+cd backend
+java -jar target/abc-bank-2.0.0.jar
+```
+
+### Using Docker
+
+```bash
+# Run PostgreSQL
+docker run -d --name postgres \
+  -e POSTGRES_DB=abcbank \
+  -e POSTGRES_USER=abcbank \
+  -e POSTGRES_PASSWORD=changeme \
+  postgres:15-alpine
+
+# Run application
+docker run -d --name abc-bank \
+  --link postgres:postgres \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/abcbank \
+  -e SPRING_DATASOURCE_USERNAME=abcbank \
+  -e SPRING_DATASOURCE_PASSWORD=changeme \
+  -p 8080:8080 \
+  abc-bank-backend:latest
+```
+
+### Access the Application
+
+- **Web UI**: http://localhost:8080
+- **Health Check**: http://localhost:8080/actuator/health
+- **API Base**: http://localhost:8080/api
+
+## ☸️ Deploying to OpenShift
+
+### 1. Login to OpenShift
+
+```bash
+oc login https://api.your-cluster.com:6443
+oc new-project abc-bank
+```
+
+### 2. Build and Push Docker Image
+
+```bash
+# Tag image for registry
+docker tag abc-bank-backend:latest your-registry/abc-bank-backend:latest
+
+# Push to registry
+docker push your-registry/abc-bank-backend:latest
+```
+
+### 3. Update Helm Values
+
+Edit `helm/abc-bank/values.yaml`:
+
+```yaml
+app:
+  image:
+    repository: your-registry/abc-bank-backend
+    tag: latest
+
+database:
+  password: your-secure-password  # Change this!
+
+route:
+  host: abc-bank.apps.your-cluster.com
+```
+
+### 4. Install with Helm
+
+```bash
+# Validate chart
+helm lint helm/abc-bank
+
+# Dry run
+helm install abc-bank helm/abc-bank --dry-run --debug
+
+# Install
+helm install abc-bank helm/abc-bank
+```
+
+### 5. Monitor Deployment
+
+```bash
+# Watch pods
+kubectl get pods -w
+
+# Check logs
+kubectl logs -f deployment/abc-bank
+kubectl logs -f deployment/abc-bank-postgres
+
+# Get route
+oc get route abc-bank
+```
+
+### 6. Access Application
+
+```bash
+export ROUTE_HOST=$(oc get route abc-bank -o jsonpath='{.spec.host}')
+echo "Application URL: https://$ROUTE_HOST"
+open https://$ROUTE_HOST
+```
+
+## 📚 API Documentation
+
+### Authentication
+
+#### Login
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "username": "john.doe",
+  "password": "password"
+}
+```
+
+#### Logout
+```http
+POST /api/auth/logout
+```
+
+### Accounts
+
+#### Get User Accounts
+```http
+GET /api/accounts
+Authorization: Bearer {token}
+```
+
+Response:
+```json
+[
+  {
+    "id": 1,
+    "accountNumber": "ACC1001",
+    "accountType": "SAVINGS",
+    "balance": 5000.00,
+    "ownerName": "John Doe"
+  }
+]
+```
+
+#### Get Account Details
+```http
+GET /api/accounts/{id}
+Authorization: Bearer {token}
+```
+
+### Transactions
+
+#### Get Transaction History
+```http
+GET /api/transactions?accountId={accountId}
+Authorization: Bearer {token}
+```
+
+Response:
+```json
+[
+  {
+    "id": 1,
+    "amount": -100.00,
+    "type": "DEBIT",
+    "description": "ATM Withdrawal",
+    "timestamp": "2024-01-15T10:30:00",
+    "balanceAfter": 4900.00
+  }
+]
+```
+
+### Transfers
+
+#### Execute Fund Transfer
+```http
+POST /api/transfers
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "fromAccount": "ACC1001",
+  "toAccount": "ACC2001",
+  "amount": 100.00,
+  "description": "Payment"
+}
+```
+
+Response:
+```json
+{
+  "success": true,
+  "message": "Transfer successful",
+  "referenceNumber": "TXN123456"
+}
+```
+
+## 🔑 Demo Credentials
+
+### Users
+
+| Username | Password | Role | Accounts |
+|----------|----------|------|----------|
+| john.doe | password | USER | ACC1001, ACC1002 |
+| jane.smith | password | USER | ACC2001, ACC2002, ACC2003 |
+| admin | password | ADMIN | - |
+
+### Sample Accounts
+
+| Account Number | Type | Balance | Owner |
+|----------------|------|---------|-------|
+| ACC1001 | SAVINGS | $5,000.00 | John Doe |
+| ACC1002 | CHECKING | $2,500.00 | John Doe |
+| ACC2001 | SAVINGS | $10,000.00 | Jane Smith |
+| ACC2002 | CHECKING | $3,500.00 | Jane Smith |
+| ACC2003 | FIXED_DEPOSIT | $50,000.00 | Jane Smith |
+
+## ⚠️ Known Limitations
+
+### Database Storage
+- **PostgreSQL uses emptyDir volume** - Data is ephemeral and will be lost when the pod restarts
+- This is intentional for demo purposes (no PersistentVolumeClaims allowed)
+- Data is automatically reseeded from `data.sql` on startup
+
+### Scalability
+- **Single replica deployment** - Not configured for horizontal scaling
+- **No load balancing** - Single instance only
+- **No database replication** - Single PostgreSQL instance
+
+### Security
+- **Demo credentials** - Hardcoded in `data.sql`
+- **Simple authentication** - Form-based login only
+- **No OAuth/OIDC** - Basic Spring Security implementation
+
+### Production Readiness
+- **Not production-ready** - This is a demonstration/proof-of-concept
+- **No backup/restore** - Data loss is acceptable
+- **No monitoring/alerting** - Basic Actuator endpoints only
+- **No CI/CD pipeline** - Manual build and deployment
+
+## 🔧 Troubleshooting
+
+### Application Won't Start
+
+**Problem**: Application fails to start with database connection errors
+
+**Solution**:
+```bash
+# Check PostgreSQL is running
+kubectl get pods | grep postgres
+
+# Check database credentials
+kubectl get secret abc-bank-db-secret -o yaml
+
+# View application logs
+kubectl logs deployment/abc-bank
+```
+
+### Health Checks Failing
+
+**Problem**: Readiness/liveness probes failing
+
+**Solution**:
+```bash
+# Check health endpoint manually
+kubectl exec deployment/abc-bank -- curl localhost:8080/actuator/health
+
+# Increase initialDelaySeconds in values.yaml
+app:
+  readinessProbe:
+    initialDelaySeconds: 60  # Increase if needed
+```
+
+### Data Not Persisting
+
+**Problem**: Data disappears after pod restart
+
+**Solution**: This is expected behavior with emptyDir volumes. Data is reseeded from `data.sql` on startup.
+
+### Cannot Access Route
+
+**Problem**: Route returns 503 or connection refused
+
+**Solution**:
+```bash
+# Check route exists
+oc get route abc-bank
+
+# Check service endpoints
+kubectl get endpoints abc-bank
+
+# Verify pods are ready
+kubectl get pods -l app.kubernetes.io/name=abc-bank
+```
+
+### Build Failures
+
+**Problem**: Maven build fails
+
+**Solution**:
+```bash
+# Clean and rebuild
+mvn clean install -U
+
+# Skip tests if needed
+mvn clean package -DskipTests
+
+# Check Java version
+java -version  # Should be 17+
+```
+
+## 📞 Support
+
+For issues and questions:
+- **GitHub Issues**: https://github.com/abcbank/abc-bank-modernized/issues
+- **Email**: devops@abcbank.com
+- **Documentation**: https://docs.abcbank.com
+
+## 📄 License
+
+Copyright © 2024 ABC Bank. All rights reserved.
+
+This is a demonstration project for educational purposes.
+
+---
+
+**Built with ❤️ by the ABC Bank DevOps Team**
+      ]]>
+    </template>
+  </readme_template>
+
+  <complete_example_project>
+    <description>
+      Complete example showing all components working together
+    </description>
+
+    <example_entity>
+      <![CDATA[
+// src/main/java/com/abcbank/model/Account.java
+package com.abcbank.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "accounts", indexes = {
+    @Index(name = "idx_account_number", columnList = "account_number"),
+    @Index(name = "idx_user_id", columnList = "user_id")
+})
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class Account {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    private Long id;
+    
+    @Column(name = "account_number", nullable = false, unique = true, length = 20)
+    private String accountNumber;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    @ToString.Exclude
+    private User user;
+    
+    @Column(name = "account_type", nullable = false, length = 20)
+    @Enumerated(EnumType.STRING)
+    private AccountType accountType;
+    
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal balance = BigDecimal.ZERO;
+    
+    @Column(name = "is_active", nullable = false)
+    private Boolean active = true;
+    
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    @ToString.Exclude
+    private List<Transaction> transactions = new ArrayList<>();
+    
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at")
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+    
+    @Version
+    private Long version;
+}
+      ]]>
+    </example_entity>
+
+    <example_repository>
+      <![CDATA[
+// src/main/java/com/abcbank/repository/AccountRepository.java
+package com.abcbank.repository;
+
+import com.abcbank.model.Account;
+import com.abcbank.model.AccountType;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface AccountRepository extends JpaRepository<Account, Long> {
+    
+    Optional<Account> findByAccountNumber(String accountNumber);
+    
+    List<Account> findByUserId(Long userId);
+    
+    List<Account> findByUserIdAndActive(Long userId, Boolean active);
+    
+    boolean existsByAccountNumber(String accountNumber);
+    
+    @Query("SELECT a FROM Account a WHERE a.user.id = :userId AND a.accountType = :type")
+    List<Account> findUserAccountsByType(@Param("userId") Long userId, 
+                                         @Param("type") AccountType type);
+    
+    @Query("SELECT a FROM Account a WHERE a.balance > :minBalance")
+    List<Account> findAccountsWithMinBalance(@Param("minBalance") BigDecimal minBalance);
+}
+      ]]>
+    </example_repository>
+
+    <example_service>
+      <![CDATA[
+// src/main/java/com/abcbank/service/TransferService.java
+package com.abcbank.service;
+
+import com.abcbank.dto.request.TransferRequest;
+import com.abcbank.dto.response.TransferResponse;
+import com.abcbank.exception.AccountNotFoundException;
+import com.abcbank.exception.InsufficientFundsException;
+import com.abcbank.exception.InvalidAmountException;
+import com.abcbank.model.Account;
+import com.abcbank.model.Transaction;
+import com.abcbank.model.TransactionType;
+import com.abcbank.repository.AccountRepository;
+import com.abcbank.repository.TransactionRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+@Service
+@Transactional
+@RequiredArgsConstructor
+@Slf4j
+public class TransferService {
+    
+    private final AccountRepository accountRepository;
+    private final TransactionRepository transactionRepository;
+    
+    public TransferResponse executeTransfer(TransferRequest request, String username) {
+        log.info("Executing transfer: {} -> {}, amount: {}", 
+            request.getFromAccount(), request.getToAccount(), request.getAmount());
+        
+        // Validate amount
+        if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidAmountException("Transfer amount must be positive");
+        }
+        
+        // Get accounts
+        Account fromAccount = accountRepository
+            .findByAccountNumber(request.getFromAccount())
+            .orElseThrow(() -> new AccountNotFoundException("Source account not found"));
+            
+        Account toAccount = accountRepository
+            .findByAccountNumber(request.getToAccount())
+            .orElseThrow(() -> new AccountNotFoundException("Destination account not found"));
+        
+        // Verify ownership
+        if (!fromAccount.getUser().getUsername().equals(username)) {
+            throw new SecurityException("You don't own the source account");
+        }
+        
+        // Check balance
+        if (fromAccount.getBalance().compareTo(request.getAmount()) < 0) {
+            throw new InsufficientFundsException("Insufficient balance in source account");
+        }
+        
+        // Perform transfer
+        fromAccount.setBalance(fromAccount.getBalance().subtract(request.getAmount()));
+        toAccount.setBalance(toAccount.getBalance().add(request.getAmount()));
+        
+        // Generate reference number
+        String referenceNumber = "TXN" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        
+        // Create transaction records
+        Transaction debitTxn = Transaction.builder()
+            .account(fromAccount)
+            .amount(request.getAmount().negate())
+            .transactionType(TransactionType.TRANSFER_OUT)
+            .description(request.getDescription() != null ? 
+                request.getDescription() : "Transfer to " + request.getToAccount())
+            .referenceNumber(referenceNumber)
+            .balanceAfter(fromAccount.getBalance())
+            .timestamp(LocalDateTime.now())
+            .build();
+        
+        Transaction creditTxn = Transaction.builder()
+            .account(toAccount)
+            .amount(request.getAmount())
+            .transactionType(TransactionType.TRANSFER_IN)
+            .description("Transfer from " + request.getFromAccount())
+            .referenceNumber(referenceNumber)
+            .balanceAfter(toAccount.getBalance())
+            .timestamp(LocalDateTime.now())
+            .build();
+        
+        // Save everything
+        accountRepository.saveAll(List.of(fromAccount, toAccount));
+        transactionRepository.saveAll(List.of(debitTxn, creditTxn));
+        
+        log.info("Transfer completed successfully. Reference: {}", referenceNumber);
+        
+        return TransferResponse.builder()
+            .success(true)
+            .message("Transfer successful")
+            .referenceNumber(referenceNumber)
+            .build();
+    }
+}
+      ]]>
+    </example_service>
+
+    <example_controller>
+      <![CDATA[
+// src/main/java/com/abcbank/controller/TransferController.java
+package com.abcbank.controller;
+
+import com.abcbank.dto.request.TransferRequest;
+import com.abcbank.dto.response.TransferResponse;
+import com.abcbank.service.TransferService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+
+@RestController
+@RequestMapping("/api/transfers")
+@RequiredArgsConstructor
+@Slf4j
+public class TransferController {
+    
+    private final TransferService transferService;
+    
+    @PostMapping
+    public ResponseEntity<TransferResponse> executeTransfer(
+            @Valid @RequestBody TransferRequest request,
+            Principal principal) {
+        
+        log.info("Transfer request from user: {}", principal.getName());
+        TransferResponse response = transferService.executeTransfer(request, principal.getName());
+        return ResponseEntity.ok(response);
+    }
+}
+      ]]>
+    </example_controller>
+
+    <example_dto>
+      <![CDATA[
+// src/main/java/com/abcbank/dto/request/TransferRequest.java
+package com.abcbank.dto.request;
+
+import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TransferRequest {
+    
+    @NotBlank(message = "Source account is required")
+    @Pattern(regexp = "ACC\\d{4}", message = "Invalid account number format")
+    private String fromAccount;
+    
+    @NotBlank(message = "Destination account is required")
+    @Pattern(regexp = "ACC\\d{4}", message = "Invalid account number format")
+    private String toAccount;
+    
+    @NotNull(message = "Amount is required")
+    @DecimalMin(value = "0.01", message = "Amount must be at least 0.01")
+    @DecimalMax(value = "1000000.00", message = "Amount cannot exceed 1,000,000.00")
+    @Digits(integer = 10, fraction = 2, message = "Invalid amount format")
+    private BigDecimal amount;
+    
+    @Size(max = 200, message = "Description cannot exceed 200 characters")
+    private String description;
+}
+
+// src/main/java/com/abcbank/dto/response/TransferResponse.java
+package com.abcbank.dto.response;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TransferResponse {
+    private Boolean success;
+    private String message;
+    private String referenceNumber;
+}
+      ]]>
+    </example_dto>
+
+    <example_exception_handler>
+      <![CDATA[
+// src/main/java/com/abcbank/exception/GlobalExceptionHandler.java
+package com.abcbank.exception;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
+@ControllerAdvice
+@Slf4j
+public class GlobalExceptionHandler {
+    
+    @ExceptionHandler(AccountNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleAccountNotFound(AccountNotFoundException ex) {
+        log.warn("Account not found: {}", ex.getMessage());
+        ErrorResponse error = ErrorResponse.builder()
+            .timestamp(LocalDateTime.now())
+            .status(HttpStatus.NOT_FOUND.value())
+            .error("Not Found")
+            .message(ex.getMessage())
+            .build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+    
+    @ExceptionHandler(InsufficientFundsException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientFunds(InsufficientFundsException ex) {
+        log.warn("Insufficient funds: {}", ex.getMessage());
+        ErrorResponse error = ErrorResponse.builder()
+            .timestamp(LocalDateTime.now())
+            .status(HttpStatus.BAD_REQUEST.value())
+            .error("Bad Request")
+            .message(ex.getMessage())
+            .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+    
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach(error -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        
+        ErrorResponse error = ErrorResponse.builder()
+            .timestamp(LocalDateTime.now())
+            .status(HttpStatus.BAD_REQUEST.value())
+            .error("Validation Failed")
+            .message("Invalid input")
+            .validationErrors(errors)
+            .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+    
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+        log.error("Unexpected error", ex);
+        ErrorResponse error = ErrorResponse.builder()
+            .timestamp(LocalDateTime.now())
+            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+            .error("Internal Server Error")
+            .message("An unexpected error occurred")
+            .build();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+}
+      ]]>
+    </example_exception_handler>
+  </complete_example_project>
+
+  <testing_examples>
+    <unit_test_example>
+      <![CDATA[
+// src/test/java/com/abcbank/service/TransferServiceTest.java
+package com.abcbank.service;
+
+import com.abcbank.dto.request.TransferRequest;
+import com.abcbank.dto.response.TransferResponse;
+import com.abcbank.exception.AccountNotFoundException;
+import com.abcbank.exception.InsufficientFundsException;
+import com.abcbank.model.Account;
+import com.abcbank.model.AccountType;
+import com.abcbank.model.User;
+import com.abcbank.repository.AccountRepository;
+import com.abcbank.repository.TransactionRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class TransferServiceTest {
+    
+    @Mock
+    private AccountRepository accountRepository;
+    
+    @Mock
+    private TransactionRepository transactionRepository;
+    
+    @InjectMocks
+    private TransferService transferService;
+    
+    private User user;
+    private Account fromAccount;
+    private Account toAccount;
+    
+    @BeforeEach
+    void setUp() {
+        user = User.builder()
+            .id(1L)
+            .username("john.doe")
+            .build();
+        
+        fromAccount = Account.builder()
+            .id(1L)
+            .accountNumber("ACC1001")
+            .user(user)
+            .accountType(AccountType.SAVINGS)
+            .balance(new BigDecimal("1000.00"))
+            .active(true)
+            .build();
+        
+        toAccount = Account.builder()
+            .id(2L)
+            .accountNumber("ACC2001")
+            .accountType(AccountType.SAVINGS)
+            .balance(new BigDecimal("500.00"))
+            .active(true)
+            .build();
+    }
+    
+    @Test
+    void executeTransfer_Success() {
+        // Given
+        TransferRequest request = TransferRequest.builder()
+            .fromAccount("ACC1001")
+            .toAccount("ACC2001")
+            .amount(new BigDecimal("100.00"))
+            .description("Test transfer")
+            .build();
+        
+        when(accountRepository.findByAccountNumber("ACC1001"))
+            .thenReturn(Optional.of(fromAccount));
+        when(accountRepository.findByAccountNumber("ACC2001"))
+            .thenReturn(Optional.of(toAccount));
+        
+        // When
+        TransferResponse response = transferService.executeTransfer(request, "john.doe");
+        
+        // Then
+        assertThat(response.getSuccess()).isTrue();
+        assertThat(response.getMessage()).isEqualTo("Transfer successful");
+        assertThat(response.getReferenceNumber()).isNotNull();
+        
+        assertThat(fromAccount.getBalance()).isEqualByComparingTo("900.00");
+        assertThat(toAccount.getBalance()).isEqualByComparingTo("600.00");
+        
+        verify(accountRepository).saveAll(anyList());
+        verify(transactionRepository).saveAll(anyList());
+    }
+    
+    @Test
+    void executeTransfer_InsufficientFunds_ThrowsException() {
+        // Given
+        TransferRequest request = TransferRequest.builder()
+            .fromAccount("ACC1001")
+            .toAccount("ACC2001")
+            .amount(new BigDecimal("2000.00"))
+            .build();
+        
+        when(accountRepository.findByAccountNumber("ACC1001"))
+            .thenReturn(Optional.of(fromAccount));
+        when(accountRepository.findByAccountNumber("ACC2001"))
+            .thenReturn(Optional.of(toAccount));
+        
+        // When/Then
+        assertThatThrownBy(() -> transferService.executeTransfer(request, "john.doe"))
+            .isInstanceOf(InsufficientFundsException.class)
+            .hasMessageContaining("Insufficient balance");
+        
+        verify(accountRepository, never()).saveAll(anyList());
+    }
+    
+    @Test
+    void executeTransfer_AccountNotFound_ThrowsException() {
+        // Given
+        TransferRequest request = TransferRequest.builder()
+            .fromAccount("ACC9999")
+            .toAccount("ACC2001")
+            .amount(new BigDecimal("100.00"))
+            .build();
+        
+        when(accountRepository.findByAccountNumber("ACC9999"))
+            .thenReturn(Optional.empty());
+        
+        // When/Then
+        assertThatThrownBy(() -> transferService.executeTransfer(request, "john.doe"))
+            .isInstanceOf(AccountNotFoundException.class)
+            .hasMessageContaining("Source account not found");
+    }
+}
+      ]]>
+    </unit_test_example>
+
+    <integration_test_example>
+      <![CDATA[
+// src/test/java/com/abcbank/controller/TransferControllerIntegrationTest.java
+package com.abcbank.controller;
+
+import com.abcbank.dto.request.TransferRequest;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@Transactional
+class TransferControllerIntegrationTest {
+    
+    @Autowired
+    private MockMvc mockMvc;
+    
+    @Autowired
+    private ObjectMapper objectMapper;
+    
+    @Test
+    @WithMockUser(username = "john.doe", roles = "USER")
+    void executeTransfer_ValidRequest_ReturnsSuccess() throws Exception {
+        TransferRequest request = TransferRequest.builder()
+            .fromAccount("ACC1001")
+            .toAccount("ACC2001")
+            .amount(new BigDecimal("100.00"))
+            .description("Test transfer")
+            .build();
+        
+        mockMvc.perform(post("/api/transfers")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.message").value("Transfer successful"))
+            .andExpect(jsonPath("$.referenceNumber").exists());
+    }
+    
+    @Test
+    @WithMockUser(username = "john.doe", roles = "USER")
+    void executeTransfer_InvalidAmount_ReturnsBadRequest() throws Exception {
+        TransferRequest request = TransferRequest.builder()
+            .fromAccount("ACC1001")
+            .toAccount("ACC2001")
+            .amount(new BigDecimal("-100.00"))
+            .build();
+        
+        mockMvc.perform(post("/api/transfers")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.error").value("Validation Failed"));
+    }
+}
+      ]]>
+    </integration_test_example>
+  </testing_examples>
+
+  <deployment_checklist>
+    <title>Pre-Deployment Checklist</title>
+    
+    <category name="Code Quality">
+      <item>All unit tests passing</item>
+      <item>Integration tests passing</item>
+      <item>Code coverage > 70%</item>
+      <item>No critical SonarQube issues</item>
+      <item>All TODOs resolved</item>
+    </category>
+    
+    <category name="Configuration">
+      <item>Database credentials in Kubernetes Secret</item>
+      <item>No hardcoded passwords or API keys</item>
+      <item>Environment variables properly configured</item>
+      <item>Actuator endpoints enabled</item>
+      <item>Logging levels appropriate for environment</item>
+    </category>
+    
+    <category name="Docker">
+      <item>Dockerfile builds successfully</item>
+      <item>Image size optimized (multi-stage build)</item>
+      <item>Non-root user configured</item>
+      <item>Health check defined</item>
+      <item>Image tagged correctly</item>
+    </category>
+    
+    <category name="Helm">
+      <item>Chart validates with helm lint</item>
+      <item>Templates render correctly</item>
+      <item>PostgreSQL uses emptyDir (no PVC)</item>
+      <item>Health probes configured</item>
+      <item>Resource limits defined</item>
+      <item>Labels and selectors consistent</item>
+    </category>
+    
+    <category name="Security">
+      <item>Passwords hashed with BCrypt</item>
+      <item>Spring Security configured</item>
+      <item>HTTPS enabled on Route</item>
+      <item>No sensitive data in logs</item>
+      <item>Input validation implemented</item>
+    </category>
+    
+    <category name="Documentation">
+      <item>README.md complete and accurate</item>
+      <item>API documentation up to date</item>
+      <item>Deployment instructions clear</item>
+      <item>Known limitations documented</item>
+      <item>Troubleshooting guide included</item>
+    </category>
+  </deployment_checklist>
+
+  <success_criteria>
+    <criterion priority="critical">
+      All legacy features work identically in modernized version
+    </criterion>
+    <criterion priority="critical">
+      Application is stateless and cloud-native
+    </criterion>
+    <criterion priority="critical">
+      PostgreSQL uses emptyDir only (no PVCs)
+    </criterion>
+    <criterion priority="critical">
+      All Kubernetes resources are Helm-templated
+    </criterion>
+    <criterion priority="high">
+      Application passes health checks
+    </criterion>
+    <criterion priority="high">
+      Documentation is complete and accurate
+    </criterion>
+    <criterion priority="high">
+      Demo credentials work correctly
+    </criterion>
+    <criterion priority="medium">
+      Code follows Spring Boot best practices
+    </criterion>
+    <criterion priority="medium">
+      Tests provide adequate coverage
+    </criterion>
+  </success_criteria>
+</examples_and_documentation>
+
+<!-- Made with Bob -->

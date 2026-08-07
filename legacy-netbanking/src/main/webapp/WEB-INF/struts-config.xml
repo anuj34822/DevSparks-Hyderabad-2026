@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts-config PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 1.3//EN"
+    "http://struts.apache.org/dtds/struts-config_1_3.dtd">
+
+<struts-config>
+    <form-beans>
+        <form-bean name="loginForm" type="com.bank.forms.LoginForm"/>
+        <form-bean name="transferForm" type="com.bank.forms.TransferForm"/>
+        <form-bean name="adminUserForm" type="com.bank.forms.AdminUserForm"/>
+        <form-bean name="adminAccountForm" type="com.bank.forms.AdminAccountForm"/>
+    </form-beans>
+
+    <action-mappings>
+        <action path="/login" type="com.bank.actions.LoginAction" name="loginForm"
+                scope="request" validate="true" input="/login.jsp">
+            <forward name="success" path="/accountSummary.do" redirect="true"/>
+            <forward name="failure" path="/login.jsp" redirect="false"/>
+        </action>
+        <action path="/accountSummary" type="com.bank.actions.AccountSummaryAction" scope="request">
+            <forward name="success" path="/accountSummary.jsp" redirect="false"/>
+            <forward name="login" path="/login.jsp" redirect="true"/>
+        </action>
+        <action path="/transactionHistory" type="com.bank.actions.TransactionHistoryAction" scope="request">
+            <forward name="success" path="/transactionHistory.jsp" redirect="false"/>
+            <forward name="login" path="/login.jsp" redirect="true"/>
+        </action>
+        <action path="/transfer" type="com.bank.actions.TransferAction" name="transferForm"
+                scope="request" validate="true" input="/transfer.jsp">
+            <forward name="success" path="/transferSuccess.jsp" redirect="false"/>
+            <forward name="failure" path="/transfer.jsp" redirect="false"/>
+            <forward name="login" path="/login.jsp" redirect="true"/>
+        </action>
+        <action path="/transferForm" type="com.bank.actions.TransferFormAction" scope="request">
+            <forward name="success" path="/transfer.jsp" redirect="false"/>
+            <forward name="login" path="/login.jsp" redirect="true"/>
+        </action>
+        <action path="/adminUsers" type="com.bank.actions.AdminUsersAction" scope="request">
+            <forward name="success" path="/admin/users.jsp" redirect="false"/>
+            <forward name="login" path="/login.jsp" redirect="true"/>
+        </action>
+        <action path="/adminCreateUser" type="com.bank.actions.AdminCreateUserAction"
+                name="adminUserForm" scope="request" input="/admin/createUser.jsp">
+            <forward name="success" path="/adminUsers.do" redirect="true"/>
+            <forward name="failure" path="/admin/createUser.jsp" redirect="false"/>
+            <forward name="login" path="/login.jsp" redirect="true"/>
+        </action>
+        <action path="/adminAccounts" type="com.bank.actions.AdminAccountsAction" scope="request">
+            <forward name="success" path="/admin/accounts.jsp" redirect="false"/>
+            <forward name="login" path="/login.jsp" redirect="true"/>
+        </action>
+        <action path="/adminCreateAccount" type="com.bank.actions.AdminCreateAccountAction"
+                name="adminAccountForm" scope="request" input="/admin/createAccount.jsp">
+            <forward name="success" path="/adminAccounts.do" redirect="true"/>
+            <forward name="failure" path="/admin/createAccount.jsp" redirect="false"/>
+            <forward name="login" path="/login.jsp" redirect="true"/>
+        </action>
+        <action path="/adminSeed" type="com.bank.actions.AdminSeedAction" scope="request">
+            <forward name="success" path="/admin/seed.jsp" redirect="false"/>
+            <forward name="login" path="/login.jsp" redirect="true"/>
+        </action>
+    </action-mappings>
+
+    <message-resources parameter="ApplicationResources"/>
+</struts-config>

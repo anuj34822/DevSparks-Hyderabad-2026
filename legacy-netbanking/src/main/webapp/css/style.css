@@ -1,0 +1,27 @@
+/* ABC Bank - Legacy Internet Banking */
+body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #333; background-color: #e8e8e8; margin: 0; padding: 0; }
+.bank-header { background-color: #1a365d; color: #fff; padding: 12px 20px; border-bottom: 3px solid #2d5a87; }
+.bank-header h1 { margin: 0; font-size: 20px; font-weight: bold; }
+.bank-header .tagline { font-size: 11px; color: #a0c4e8; margin-top: 2px; }
+.bank-nav { background-color: #2d5a87; padding: 8px 20px; border-bottom: 1px solid #1a365d; }
+.bank-nav a { color: #fff; text-decoration: none; padding: 4px 12px; margin-right: 4px; }
+.bank-nav a:hover { background-color: #3d6a97; }
+.bank-nav .user-info { color: #c0d8f0; font-size: 11px; margin-right: 12px; }
+.content { max-width: 900px; margin: 20px auto; padding: 20px; background-color: #fff; border: 1px solid #ccc; border-radius: 2px; }
+.content h2 { color: #1a365d; font-size: 16px; margin-top: 0; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #ddd; }
+table.data-table { width: 100%; border-collapse: collapse; border: 1px solid #ccc; margin-bottom: 16px; }
+table.data-table th { background-color: #1a365d; color: #fff; padding: 8px 10px; text-align: left; }
+table.data-table td { padding: 8px 10px; border-bottom: 1px solid #e0e0e0; }
+table.data-table tr:nth-child(even) { background-color: #f5f5f5; }
+table.form-table { border: 0; margin: 16px 0; }
+table.form-table td { padding: 6px 10px 6px 0; vertical-align: top; }
+table.form-table td:first-child { width: 140px; font-weight: bold; }
+input[type="text"], input[type="password"] { padding: 6px 8px; border: 1px solid #999; font-size: 12px; width: 200px; }
+select { padding: 6px 8px; border: 1px solid #999; font-size: 12px; min-width: 220px; }
+.btn { padding: 8px 16px; background-color: #2d6a3e; color: #fff; border: 1px solid #1e4d2a; font-size: 12px; cursor: pointer; }
+.btn:hover { background-color: #3d7a4e; }
+.error-msg { color: #b00; background-color: #ffe0e0; padding: 8px 12px; margin-bottom: 12px; border: 1px solid #f88; }
+.login-page { max-width: 400px; margin: 40px auto; padding: 24px; background-color: #fff; border: 1px solid #ccc; }
+.login-page h1 { color: #1a365d; font-size: 20px; margin-top: 0; text-align: center; }
+.login-page .init-link { font-size: 11px; color: #666; margin-top: 16px; text-align: center; }
+.bank-footer { text-align: center; padding: 12px 20px; font-size: 11px; color: #666; background-color: #ddd; border-top: 1px solid #ccc; margin-top: 24px; }

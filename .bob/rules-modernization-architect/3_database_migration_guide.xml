@@ -1,0 +1,765 @@
+<database_migration_guide>
+  <overview>
+    Comprehensive guide for migrating from SQLite to PostgreSQL during the modernization process.
+    This includes schema transformation, data type mapping, and JPA entity creation.
+  </overview>
+
+  <critical_constraints>
+    <constraint>
+      <rule>PostgreSQL MUST use emptyDir volumes only</rule>
+      <rationale>No PersistentVolumeClaims allowed - ephemeral storage acceptable for demo</rationale>
+      <implementation>Use emptyDir in Kubernetes Deployment, not StatefulSet</implementation>
+    </constraint>
+    <constraint>
+      <rule>Schema must be auto-created by Hibernate</rule>
+      <rationale>No manual schema creation - use spring.jpa.hibernate.ddl-auto</rationale>
+      <implementation>Set ddl-auto to 'update' or 'create-drop' in application.yml</implementation>
+    </constraint>
+    <constraint>
+      <rule>Seed data via data.sql</rule>
+      <rationale>Demo data must be loaded automatically on startup</rationale>
+      <implementation>Place INSERT statements in src/main/resources/data.sql</implementation>
+    </constraint>
+  </critical_constraints>
+
+  <phase_1_schema_analysis>
+    <title>Analyze SQLite Schema</title>
+    <description>
+      Extract and understand the existing SQLite database structure
+    </description>
+
+    <step number="1">
+      <action>Extract SQLite schema</action>
+      <commands>
+        <command>sqlite3 database.db ".schema" > sqlite_schema.sql</command>
+        <command>sqlite3 database.db ".dump" > sqlite_dump.sql</command>
+        <command>sqlite3 database.db "SELECT name FROM sqlite_master WHERE type='table';" > tables.txt</command>
+      </commands>
+    </step>
+
+    <step number="2">
+      <action>Document table structures</action>
+      <example_analysis>
+        <![CDATA[
+-- Example SQLite schema
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    email TEXT,
+    full_name TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE accounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_number TEXT NOT NULL UNIQUE,
+    user_id INTEGER NOT NULL,
+    account_type TEXT NOT NULL,
+    balance REAL NOT NULL DEFAULT 0.0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE transactions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_id INTEGER NOT NULL,
+    amount REAL NOT NULL,
+    transaction_type TEXT NOT NULL,
+    description TEXT,
+    timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (account_id) REFERENCES accounts(id)
+);
+        ]]>
+      </example_analysis>
+    </step>
+
+    <step number="3">
+      <action>Identify relationships and constraints</action>
+      <relationships>
+        <relationship>
+          <type>One-to-Many</type>
+          <from>users</from>
+          <to>accounts</to>
+          <description>One user can have multiple accounts</description>
+        </relationship>
+        <relationship>
+          <type>One-to-Many</type>
+          <from>accounts</from>
+          <to>transactions</to>
+          <description>One account can have multiple transactions</description>
+        </relationship>
+      </relationships>
+    </step>
+  </phase_1_schema_analysis>
+
+  <phase_2_type_mapping>
+    <title>SQLite to PostgreSQL Type Mapping</title>
+    <description>
+      Map SQLite data types to appropriate PostgreSQL types
+    </description>
+
+    <type_mappings>
+      <mapping>
+        <sqlite>INTEGER</sqlite>
+        <postgresql>BIGINT or INTEGER</postgresql>
+        <jpa>Long or Integer</jpa>
+        <notes>Use BIGINT for IDs to support larger datasets</notes>
+      </mapping>
+
+      <mapping>
+        <sqlite>TEXT</sqlite>
+        <postgresql>VARCHAR(n) or TEXT</postgresql>
+        <jpa>String</jpa>
+        <notes>Use VARCHAR with length for constrained fields, TEXT for unlimited</notes>
+      </mapping>
+
+      <mapping>
+        <sqlite>REAL</sqlite>
+        <postgresql>NUMERIC(precision, scale)</postgresql>
+        <jpa>BigDecimal</jpa>
+        <notes>CRITICAL: Use NUMERIC for money, never REAL or DOUBLE PRECISION</notes>
+      </mapping>
+
+      <mapping>
+        <sqlite>BLOB</sqlite>
+        <postgresql>BYTEA</postgresql>
+        <jpa>byte[]</jpa>
+        <notes>For binary data like images or documents</notes>
+      </mapping>
+
+      <mapping>
+        <sqlite>TEXT (for dates)</sqlite>
+        <postgresql>TIMESTAMP or DATE</postgresql>
+        <jpa>LocalDateTime or LocalDate</jpa>
+        <notes>Use proper temporal types instead of text</notes>
+      </mapping>
+
+      <mapping>
+        <sqlite>INTEGER (for booleans)</sqlite>
+        <postgresql>BOOLEAN</postgresql>
+        <jpa>Boolean</jpa>
+        <notes>PostgreSQL has native boolean type</notes>
+      </mapping>
+    </type_mappings>
+
+    <transformation_example>
+      <sqlite_table>
+        <![CDATA[
+CREATE TABLE accounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    account_number TEXT NOT NULL UNIQUE,
+    user_id INTEGER NOT NULL,
+    account_type TEXT NOT NULL,
+    balance REAL NOT NULL DEFAULT 0.0,
+    is_active INTEGER DEFAULT 1,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+        ]]>
+      </sqlite_table>
+
+      <postgresql_equivalent>
+        <![CDATA[
+CREATE TABLE accounts (
+    id BIGSERIAL PRIMARY KEY,
+    account_number VARCHAR(20) NOT NULL UNIQUE,
+    user_id BIGINT NOT NULL,
+    account_type VARCHAR(20) NOT NULL,
+    balance NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_accounts_user_id ON accounts(user_id);
+CREATE INDEX idx_accounts_account_number ON accounts(account_number);
+        ]]>
+      </postgresql_equivalent>
+    </transformation_example>
+  </phase_2_type_mapping>
+
+  <phase_3_jpa_entities>
+    <title>Create JPA Entity Classes</title>
+    <description>
+      Transform database tables into JPA entities with proper annotations
+    </description>
+
+    <entity_template>
+      <user_entity>
+        <![CDATA[
+package com.abcbank.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "users", indexes = {
+    @Index(name = "idx_username", columnList = "username")
+})
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class User {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    private Long id;
+    
+    @Column(nullable = false, unique = true, length = 50)
+    private String username;
+    
+    @Column(nullable = false, length = 100)
+    private String password; // BCrypt hashed
+    
+    @Column(length = 100)
+    private String email;
+    
+    @Column(name = "full_name", length = 100)
+    private String fullName;
+    
+    @Column(length = 20)
+    private String role = "USER";
+    
+    @Column(nullable = false)
+    private Boolean active = true;
+    
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Account> accounts = new ArrayList<>();
+    
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at")
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+    
+    @Version
+    private Long version;
+    
+    // Helper methods
+    public void addAccount(Account account) {
+        accounts.add(account);
+        account.setUser(this);
+    }
+    
+    public void removeAccount(Account account) {
+        accounts.remove(account);
+        account.setUser(null);
+    }
+}
+        ]]>
+      </user_entity>
+
+      <account_entity>
+        <![CDATA[
+package com.abcbank.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "accounts", indexes = {
+    @Index(name = "idx_account_number", columnList = "account_number"),
+    @Index(name = "idx_user_id", columnList = "user_id")
+})
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class Account {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    private Long id;
+    
+    @Column(name = "account_number", nullable = false, unique = true, length = 20)
+    private String accountNumber;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    @ToString.Exclude
+    private User user;
+    
+    @Column(name = "account_type", nullable = false, length = 20)
+    @Enumerated(EnumType.STRING)
+    private AccountType accountType;
+    
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal balance = BigDecimal.ZERO;
+    
+    @Column(name = "is_active", nullable = false)
+    private Boolean active = true;
+    
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    @ToString.Exclude
+    private List<Transaction> transactions = new ArrayList<>();
+    
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at")
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+    
+    @Version
+    private Long version;
+    
+    // Helper methods
+    public void addTransaction(Transaction transaction) {
+        transactions.add(transaction);
+        transaction.setAccount(this);
+    }
+    
+    public void debit(BigDecimal amount) {
+        this.balance = this.balance.subtract(amount);
+    }
+    
+    public void credit(BigDecimal amount) {
+        this.balance = this.balance.add(amount);
+    }
+}
+
+@Getter
+public enum AccountType {
+    SAVINGS("Savings Account"),
+    CHECKING("Checking Account"),
+    FIXED_DEPOSIT("Fixed Deposit");
+    
+    private final String displayName;
+    
+    AccountType(String displayName) {
+        this.displayName = displayName;
+    }
+}
+        ]]>
+      </account_entity>
+
+      <transaction_entity>
+        <![CDATA[
+package com.abcbank.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "transactions", indexes = {
+    @Index(name = "idx_account_id", columnList = "account_id"),
+    @Index(name = "idx_timestamp", columnList = "timestamp")
+})
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class Transaction {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    private Long id;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id", nullable = false)
+    @ToString.Exclude
+    private Account account;
+    
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal amount;
+    
+    @Column(name = "transaction_type", nullable = false, length = 20)
+    @Enumerated(EnumType.STRING)
+    private TransactionType transactionType;
+    
+    @Column(length = 200)
+    private String description;
+    
+    @Column(name = "reference_number", length = 50)
+    private String referenceNumber;
+    
+    @Column(nullable = false)
+    @CreationTimestamp
+    private LocalDateTime timestamp;
+    
+    @Column(name = "balance_after", precision = 15, scale = 2)
+    private BigDecimal balanceAfter;
+}
+
+@Getter
+public enum TransactionType {
+    DEBIT("Debit"),
+    CREDIT("Credit"),
+    TRANSFER_OUT("Transfer Out"),
+    TRANSFER_IN("Transfer In"),
+    FEE("Fee"),
+    INTEREST("Interest");
+    
+    private final String displayName;
+    
+    TransactionType(String displayName) {
+        this.displayName = displayName;
+    }
+}
+        ]]>
+      </transaction_entity>
+    </entity_template>
+
+    <annotation_guidelines>
+      <guideline>
+        <annotation>@Entity</annotation>
+        <purpose>Marks class as JPA entity</purpose>
+        <required>true</required>
+      </guideline>
+
+      <guideline>
+        <annotation>@Table(name = "table_name")</annotation>
+        <purpose>Specifies database table name</purpose>
+        <required>false</required>
+        <note>Optional if class name matches table name</note>
+      </guideline>
+
+      <guideline>
+        <annotation>@Id</annotation>
+        <purpose>Marks primary key field</purpose>
+        <required>true</required>
+      </guideline>
+
+      <guideline>
+        <annotation>@GeneratedValue(strategy = GenerationType.IDENTITY)</annotation>
+        <purpose>Auto-increment primary key</purpose>
+        <required>false</required>
+        <note>Use IDENTITY for PostgreSQL auto-increment</note>
+      </guideline>
+
+      <guideline>
+        <annotation>@Column</annotation>
+        <purpose>Specifies column properties</purpose>
+        <required>false</required>
+        <attributes>
+          - name: column name
+          - nullable: NOT NULL constraint
+          - unique: UNIQUE constraint
+          - length: VARCHAR length
+          - precision/scale: for NUMERIC
+        </attributes>
+      </guideline>
+
+      <guideline>
+        <annotation>@ManyToOne / @OneToMany</annotation>
+        <purpose>Defines relationships</purpose>
+        <required>true for relationships</required>
+        <note>Use fetch = FetchType.LAZY for performance</note>
+      </guideline>
+
+      <guideline>
+        <annotation>@Enumerated(EnumType.STRING)</annotation>
+        <purpose>Store enum as string in database</purpose>
+        <required>true for enums</required>
+        <note>STRING is safer than ORDINAL</note>
+      </guideline>
+
+      <guideline>
+        <annotation>@CreationTimestamp / @UpdateTimestamp</annotation>
+        <purpose>Automatic timestamp management</purpose>
+        <required>false</required>
+        <note>Hibernate-specific annotations</note>
+      </guideline>
+
+      <guideline>
+        <annotation>@Version</annotation>
+        <purpose>Optimistic locking</purpose>
+        <required>false</required>
+        <note>Recommended for concurrent updates</note>
+      </guideline>
+    </annotation_guidelines>
+  </phase_3_jpa_entities>
+
+  <phase_4_data_migration>
+    <title>Migrate Data with data.sql</title>
+    <description>
+      Create data.sql file to seed the PostgreSQL database with demo data
+    </description>
+
+    <data_sql_template>
+      <![CDATA[
+-- data.sql
+-- This file is automatically executed by Spring Boot on startup
+-- when spring.sql.init.mode=always
+
+-- Clean existing data (for development)
+-- TRUNCATE TABLE transactions CASCADE;
+-- TRUNCATE TABLE accounts CASCADE;
+-- TRUNCATE TABLE users CASCADE;
+
+-- Insert demo users
+-- Password is 'password' hashed with BCrypt (strength 10)
+INSERT INTO users (username, password, email, full_name, role, active) VALUES
+('john.doe', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'john.doe@abcbank.com', 'John Doe', 'USER', true),
+('jane.smith', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'jane.smith@abcbank.com', 'Jane Smith', 'USER', true),
+('admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'admin@abcbank.com', 'System Administrator', 'ADMIN', true)
+ON CONFLICT (username) DO NOTHING;
+
+-- Insert demo accounts
+INSERT INTO accounts (account_number, user_id, account_type, balance, active) VALUES
+('ACC1001', (SELECT id FROM users WHERE username = 'john.doe'), 'SAVINGS', 5000.00, true),
+('ACC1002', (SELECT id FROM users WHERE username = 'john.doe'), 'CHECKING', 2500.00, true),
+('ACC2001', (SELECT id FROM users WHERE username = 'jane.smith'), 'SAVINGS', 10000.00, true),
+('ACC2002', (SELECT id FROM users WHERE username = 'jane.smith'), 'CHECKING', 3500.00, true),
+('ACC2003', (SELECT id FROM users WHERE username = 'jane.smith'), 'FIXED_DEPOSIT', 50000.00, true)
+ON CONFLICT (account_number) DO NOTHING;
+
+-- Insert demo transactions
+INSERT INTO transactions (account_id, amount, transaction_type, description, reference_number, balance_after, timestamp) VALUES
+-- John's transactions
+((SELECT id FROM accounts WHERE account_number = 'ACC1001'), 5000.00, 'CREDIT', 'Initial Deposit', 'REF001', 5000.00, CURRENT_TIMESTAMP - INTERVAL '30 days'),
+((SELECT id FROM accounts WHERE account_number = 'ACC1001'), -100.00, 'DEBIT', 'ATM Withdrawal', 'REF002', 4900.00, CURRENT_TIMESTAMP - INTERVAL '25 days'),
+((SELECT id FROM accounts WHERE account_number = 'ACC1001'), 1500.00, 'CREDIT', 'Salary Deposit', 'REF003', 6400.00, CURRENT_TIMESTAMP - INTERVAL '20 days'),
+((SELECT id FROM accounts WHERE account_number = 'ACC1001'), -200.00, 'DEBIT', 'Online Purchase', 'REF004', 6200.00, CURRENT_TIMESTAMP - INTERVAL '15 days'),
+((SELECT id FROM accounts WHERE account_number = 'ACC1001'), -1200.00, 'TRANSFER_OUT', 'Transfer to Checking', 'REF005', 5000.00, CURRENT_TIMESTAMP - INTERVAL '10 days'),
+
+((SELECT id FROM accounts WHERE account_number = 'ACC1002'), 2500.00, 'CREDIT', 'Initial Deposit', 'REF006', 2500.00, CURRENT_TIMESTAMP - INTERVAL '30 days'),
+((SELECT id FROM accounts WHERE account_number = 'ACC1002'), 1200.00, 'TRANSFER_IN', 'Transfer from Savings', 'REF007', 3700.00, CURRENT_TIMESTAMP - INTERVAL '10 days'),
+((SELECT id FROM accounts WHERE account_number = 'ACC1002'), -500.00, 'DEBIT', 'Bill Payment', 'REF008', 3200.00, CURRENT_TIMESTAMP - INTERVAL '5 days'),
+
+-- Jane's transactions
+((SELECT id FROM accounts WHERE account_number = 'ACC2001'), 10000.00, 'CREDIT', 'Initial Deposit', 'REF009', 10000.00, CURRENT_TIMESTAMP - INTERVAL '60 days'),
+((SELECT id FROM accounts WHERE account_number = 'ACC2001'), 2000.00, 'CREDIT', 'Salary Deposit', 'REF010', 12000.00, CURRENT_TIMESTAMP - INTERVAL '30 days'),
+((SELECT id FROM accounts WHERE account_number = 'ACC2001'), -500.00, 'DEBIT', 'ATM Withdrawal', 'REF011', 11500.00, CURRENT_TIMESTAMP - INTERVAL '20 days'),
+((SELECT id FROM accounts WHERE account_number = 'ACC2001'), -1500.00, 'TRANSFER_OUT', 'Transfer to Checking', 'REF012', 10000.00, CURRENT_TIMESTAMP - INTERVAL '15 days'),
+
+((SELECT id FROM accounts WHERE account_number = 'ACC2002'), 3500.00, 'CREDIT', 'Initial Deposit', 'REF013', 3500.00, CURRENT_TIMESTAMP - INTERVAL '60 days'),
+((SELECT id FROM accounts WHERE account_number = 'ACC2002'), 1500.00, 'TRANSFER_IN', 'Transfer from Savings', 'REF014', 5000.00, CURRENT_TIMESTAMP - INTERVAL '15 days'),
+((SELECT id FROM accounts WHERE account_number = 'ACC2002'), -1500.00, 'DEBIT', 'Rent Payment', 'REF015', 3500.00, CURRENT_TIMESTAMP - INTERVAL '10 days'),
+
+((SELECT id FROM accounts WHERE account_number = 'ACC2003'), 50000.00, 'CREDIT', 'Fixed Deposit', 'REF016', 50000.00, CURRENT_TIMESTAMP - INTERVAL '90 days'),
+((SELECT id FROM accounts WHERE account_number = 'ACC2003'), 250.00, 'INTEREST', 'Quarterly Interest', 'REF017', 50250.00, CURRENT_TIMESTAMP - INTERVAL '30 days');
+      ]]>
+    </data_sql_template>
+
+    <password_generation>
+      <description>
+        Generate BCrypt hashed passwords for data.sql
+      </description>
+      <java_code>
+        <![CDATA[
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+public class PasswordHashGenerator {
+    public static void main(String[] args) {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
+        String password = "password";
+        String hashed = encoder.encode(password);
+        System.out.println("Hashed password: " + hashed);
+        // Output: $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy
+    }
+}
+        ]]>
+      </java_code>
+      <online_tool>
+        Use https://bcrypt-generator.com/ with rounds=10
+      </online_tool>
+    </password_generation>
+
+    <configuration>
+      <application_yml>
+        <![CDATA[
+spring:
+  sql:
+    init:
+      mode: always  # Always execute data.sql
+      data-locations: classpath:data.sql
+      continue-on-error: false  # Fail if data.sql has errors
+  
+  jpa:
+    hibernate:
+      ddl-auto: update  # Create/update schema automatically
+    defer-datasource-initialization: true  # Execute data.sql after schema creation
+        ]]>
+      </application_yml>
+    </configuration>
+  </phase_4_data_migration>
+
+  <phase_5_postgresql_configuration>
+    <title>PostgreSQL Configuration</title>
+    <description>
+      Configure Spring Boot to connect to PostgreSQL
+    </description>
+
+    <application_yml_config>
+      <![CDATA[
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/abcbank}
+    username: ${SPRING_DATASOURCE_USERNAME:abcbank}
+    password: ${SPRING_DATASOURCE_PASSWORD:changeme}
+    driver-class-name: org.postgresql.Driver
+    
+    # HikariCP connection pool settings
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: AbcBankHikariPool
+  
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl
+    show-sql: ${SPRING_JPA_SHOW_SQL:false}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+        generate_statistics: false
+  
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:data.sql
+      continue-on-error: false
+      
+  # Defer data.sql execution until after schema creation
+  jpa:
+    defer-datasource-initialization: true
+      ]]>
+    </application_yml_config>
+
+    <kubernetes_environment_variables>
+      <description>
+        Environment variables injected in Kubernetes Deployment
+      </description>
+      <variables>
+        <![CDATA[
+env:
+- name: SPRING_DATASOURCE_URL
+  value: "jdbc:postgresql://abc-bank-postgres:5432/abcbank"
+- name: SPRING_DATASOURCE_USERNAME
+  valueFrom:
+    secretKeyRef:
+      name: abc-bank-db-secret
+      key: database-user
+- name: SPRING_DATASOURCE_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: abc-bank-db-secret
+      key: database-password
+- name: SPRING_JPA_HIBERNATE_DDL_AUTO
+  value: "update"
+- name: SPRING_JPA_SHOW_SQL
+  value: "false"
+        ]]>
+      </variables>
+    </kubernetes_environment_variables>
+  </phase_5_postgresql_configuration>
+
+  <troubleshooting>
+    <issue>
+      <problem>Schema not created automatically</problem>
+      <causes>
+        <cause>ddl-auto not set to 'update' or 'create'</cause>
+        <cause>Database user lacks CREATE TABLE permission</cause>
+        <cause>Entity classes not scanned</cause>
+      </causes>
+      <solutions>
+        <solution>Set spring.jpa.hibernate.ddl-auto=update</solution>
+        <solution>Grant CREATE permission to database user</solution>
+        <solution>Ensure entities are in scanned package</solution>
+        <solution>Check logs for Hibernate schema generation messages</solution>
+      </solutions>
+    </issue>
+
+    <issue>
+      <problem>data.sql not executed</problem>
+      <causes>
+        <cause>spring.sql.init.mode not set to 'always'</cause>
+        <cause>data.sql executed before schema creation</cause>
+        <cause>SQL syntax errors in data.sql</cause>
+      </causes>
+      <solutions>
+        <solution>Set spring.sql.init.mode=always</solution>
+        <solution>Set spring.jpa.defer-datasource-initialization=true</solution>
+        <solution>Check data.sql for PostgreSQL-specific syntax</solution>
+        <solution>Use ON CONFLICT DO NOTHING for idempotency</solution>
+      </solutions>
+    </issue>
+
+    <issue>
+      <problem>Connection refused to PostgreSQL</problem>
+      <causes>
+        <cause>PostgreSQL pod not ready</cause>
+        <cause>Incorrect service name in JDBC URL</cause>
+        <cause>Network policy blocking connection</cause>
+      </causes>
+      <solutions>
+        <solution>Wait for PostgreSQL pod to be ready</solution>
+        <solution>Use correct service name: abc-bank-postgres:5432</solution>
+        <solution>Check Kubernetes service and endpoints</solution>
+        <solution>Verify network policies allow traffic</solution>
+      </solutions>
+    </issue>
+
+    <issue>
+      <problem>Data lost after pod restart</problem>
+      <causes>
+        <cause>Using emptyDir volume (expected behavior)</cause>
+      </causes>
+      <solutions>
+        <solution>This is expected - emptyDir is ephemeral</solution>
+        <solution>data.sql will repopulate on next startup</solution>
+        <solution>For production, use PersistentVolumeClaim (not allowed in this demo)</solution>
+      </solutions>
+    </issue>
+  </troubleshooting>
+
+  <validation_checklist>
+    <item>PostgreSQL pod starts successfully</item>
+    <item>Application connects to PostgreSQL</item>
+    <item>Hibernate creates schema automatically</item>
+    <item>data.sql executes without errors</item>
+    <item>Demo users can log in</item>
+    <item>Accounts are visible</item>
+    <item>Transactions are displayed</item>
+    <item>Fund transfers work correctly</item>
+    <item>BigDecimal used for all monetary values</item>
+    <item>No SQLite dependencies remain</item>
+  </validation_checklist>
+</database_migration_guide>
+
+<!-- Made with Bob -->

@@ -1,0 +1,164 @@
+<java_upgrade_guide>
+  <overview>
+    This guide instructs Bob to perform a Java runtime version upgrade from 1.8 to 17 using
+    OpenRewrite AST recipes — entirely within Bob's native capabilities. No premium package required.
+    This is Phase 0 of the modernization workflow and must be completed BEFORE full application modernization.
+  </overview>
+
+  <when_to_apply>
+    Apply this guide when the user asks to:
+    - Upgrade the Java version of the legacy-netbanking project
+    - Run the Java upgrade step of the modernization
+    - Do Step 4.3 of the lab
+    - Prepare the codebase for Spring Boot migration
+  </when_to_apply>
+
+  <phase_0_java_upgrade>
+    <title>Java Runtime Upgrade — Java 1.8 to Java 17</title>
+
+    <step number="1">
+      <action>Read the existing pom.xml</action>
+      <tool>read_file on legacy-netbanking/pom.xml</tool>
+      <look_for>
+        - Current java.version or maven.compiler.source/target values
+        - Existing plugins block
+        - Current dependency versions that may conflict with Java 17
+      </look_for>
+    </step>
+
+    <step number="2">
+      <action>Update compiler settings in pom.xml</action>
+      <tool>apply_diff</tool>
+      <changes>
+        <change>Set java.version property to 17</change>
+        <change>Set maven.compiler.source to 17</change>
+        <change>Set maven.compiler.target to 17</change>
+      </changes>
+      <xml_snippet>
+        <![CDATA[
+<properties>
+  <java.version>17</java.version>
+  <maven.compiler.source>17</maven.compiler.source>
+  <maven.compiler.target>17</maven.compiler.target>
+</properties>
+        ]]>
+      </xml_snippet>
+    </step>
+
+    <step number="3">
+      <action>Add OpenRewrite Maven plugin to pom.xml</action>
+      <tool>apply_diff — add inside the &lt;build&gt;&lt;plugins&gt; block</tool>
+      <plugin>
+        <![CDATA[
+<plugin>
+  <groupId>org.openrewrite.maven</groupId>
+  <artifactId>rewrite-maven-plugin</artifactId>
+  <version>5.34.1</version>
+  <configuration>
+    <activeRecipes>
+      <recipe>org.openrewrite.java.migrate.UpgradeToJava17</recipe>
+    </activeRecipes>
+  </configuration>
+  <dependencies>
+    <dependency>
+      <groupId>org.openrewrite.recipe</groupId>
+      <artifactId>rewrite-migrate-java</artifactId>
+      <version>2.17.0</version>
+    </dependency>
+  </dependencies>
+</plugin>
+        ]]>
+      </plugin>
+    </step>
+
+    <step number="4">
+      <action>Run OpenRewrite upgrade recipes</action>
+      <tool>execute_command from legacy-netbanking/ directory</tool>
+      <command>mvn rewrite:run -Drewrite.activeRecipes=org.openrewrite.java.migrate.UpgradeToJava17</command>
+      <expected_output>
+        OpenRewrite will automatically:
+        - Rewrite deprecated API usages to Java 17 equivalents
+        - Replace javax.* with jakarta.* where applicable
+        - Update language constructs to modern Java syntax
+        - Report a list of all files modified
+      </expected_output>
+    </step>
+
+    <step number="5">
+      <action>Detect and fix dependency incompatibilities</action>
+      <tool>execute_command</tool>
+      <command>mvn dependency:tree 2>&amp;1 | grep -i "conflict\|error\|WARN"</command>
+      <known_fixes>
+        <fix>
+          <dependency>javassist</dependency>
+          <upgrade_to>3.29.2-GA</upgrade_to>
+        </fix>
+        <fix>
+          <dependency>asm</dependency>
+          <upgrade_to>9.6</upgrade_to>
+        </fix>
+        <fix>
+          <dependency>javax.servlet</dependency>
+          <action>Ensure scope is provided, version compatible with Tomcat 10+</action>
+        </fix>
+      </known_fixes>
+    </step>
+
+    <step number="6">
+      <action>Validate the build compiles successfully</action>
+      <tool>execute_command</tool>
+      <command>mvn clean package -DskipTests</command>
+      <success_criteria>BUILD SUCCESS with zero compilation errors</success_criteria>
+      <on_failure>
+        Read the error output, identify the specific class and line causing failure,
+        apply targeted fix using apply_diff, then re-run.
+      </on_failure>
+    </step>
+
+    <step number="7">
+      <action>Generate Mermaid audit flowchart of all upgrade changes</action>
+      <tool>write_file — create legacy-netbanking/java-upgrade-report.md</tool>
+      <required_content>
+        - Source version (Java 1.8) and target version (Java 17)
+        - Mermaid flowchart showing the upgrade pipeline
+        - Table listing every file changed and what changed
+        - Build validation result
+      </required_content>
+      <mermaid_template>
+        <![CDATA[
+```mermaid
+flowchart TD
+    A[Legacy Java 1.8 Codebase] --> B[pom.xml: compiler source/target → 17]
+    B --> C[OpenRewrite UpgradeToJava17 recipe]
+    C --> D[AST transformations applied to source files]
+    D --> E{Dependency conflicts detected?}
+    E -- Yes --> F[Fix incompatible dependency versions]
+    E -- No --> G[mvn clean package]
+    F --> G
+    G --> H{Build result}
+    H -- SUCCESS --> I[✅ Java 17 upgrade complete — ready for modernization]
+    H -- FAILURE --> J[Fix compilation errors]
+    J --> G
+```
+        ]]>
+      </mermaid_template>
+    </step>
+  </phase_0_java_upgrade>
+
+  <integration_with_modernization>
+    After this guide completes successfully:
+    - The legacy-netbanking codebase is on Java 17
+    - The pom.xml has modern compiler settings
+    - All deprecated Java 8 APIs are rewritten
+    - Proceed immediately to Phase 1 of the modernization_workflow (full Spring Boot migration)
+    - The Modernization Architect mode's other rule files (phases 1-7) take over from here
+  </integration_with_modernization>
+
+  <bob_capabilities_used>
+    This entire upgrade is achieved using Bob's native capabilities:
+    - read_file / apply_diff — for pom.xml modifications
+    - execute_command — for running mvn OpenRewrite recipes and build validation
+    - write_file — for generating the audit report
+    No premium package, no external workflow engine, no AMA required.
+  </bob_capabilities_used>
+</java_upgrade_guide>
