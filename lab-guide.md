@@ -17,6 +17,7 @@
   - [Step 5 — Run Full Modernization with the Custom Mode](#step-5--run-full-modernization-with-the-custom-mode)
   - [Step 6 — OpenShift Deployment Artifacts (Optional)](#step-6--openshift-deployment-artifacts-optional)
 - [What Participants Should Learn](#what-participants-should-learn)
+- [Screenshot Checklist for Dry Run](#screenshot-checklist-for-dry-run)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -155,6 +156,8 @@ You need this to preview the diagrams Bob generates in Step 2.
 
 > **What to understand here:** this lab is built around those three Bob assets. The legacy application is the target system; the real learning objective is how Bob is extended.
 
+> **Validation checkpoint:** At this stage, do not inspect every file in `.bob/`. Just confirm that the custom mode, the skill, and one representative rule are present and visible in the Explorer.
+
 ---
 
 ### Step 2 — Reverse Engineering in Ask Mode
@@ -188,6 +191,8 @@ You need this to preview the diagrams Bob generates in Step 2.
 <!-- image12: documentation rendered in Preview panel -->
 
 > **What to understand here:** Ask mode is the baseline Bob capability. It helps participants understand the application before they use a skill or a custom mode.
+
+> **Validation checkpoint:** Confirm that `legacy-netbanking-documentation/` was created, that it contains generated documentation files, that at least one `.puml` file is present, and that the generated content references real source files and class names from the codebase.
 
 ---
 
@@ -257,6 +262,8 @@ mvn -version
 
 > **What to understand here:** the skill is a reusable playbook. Participants should see that the slash command is not magic — it is backed by an explicit file they can read and customize.
 
+> **Validation checkpoint:** Before invoking `/java-upgrade`, make sure participants understand that the skill file defines the workflow. After the run, confirm that Bob produced the upgrade report and that the participant can connect the slash command to the underlying `SKILL.md` file.
+
 ---
 
 ### Step 4 — Explore the Custom Mode and One Rule
@@ -287,7 +294,9 @@ mvn -version
    - How is the **custom mode** changing Bob's role?
    - How is the **rule** constraining Bob's decisions?
 
-> **What to understand here:** the mode defines Bob's operating persona, while the rule adds governance. This is the core teaching point of the lab.
+> **What to understand here:** the custom mode defines **who Bob is**, while the rule defines **what Bob must obey**. This is the core teaching point of the lab.
+
+> **Validation checkpoint:** Before moving to Step 5, participants should be able to explain the difference between the custom mode and the rule in their own words.
 
 ---
 
@@ -342,6 +351,36 @@ By the end of this lab, participants should be able to explain:
 3. how a **custom Mode** changes Bob's persona and operating style
 4. how a **Rule** constrains Bob's decisions using explicit standards
 5. how those three building blocks can replace a premium workflow with a transparent, teachable Bob-based system
+
+---
+
+## Screenshot Checklist for Dry Run
+
+Capture these screenshots while running the lab once as a participant:
+
+| File | What to capture |
+|---|---|
+| `image7.png` | Ask mode selected in the Bob mode picker |
+| `image8.png` | The extended reverse-engineering prompt typed in the chat before sending |
+| `image9.png` | Bob's enhanced version of the prompt, ready to confirm |
+| `image10.png` | Bob's reverse-engineering task list with Approve buttons |
+| `image11.png` | Right-click menu on the generated documentation file showing **Open Preview** |
+| `image12.png` | A generated documentation or PlantUML preview rendered successfully |
+| `image13.png` | `/java-upgrade` typed in the Bob chat |
+| `image14.png` | Bob asking for project path and target Java version |
+| `image15.png` | Bob's Java upgrade task list |
+| `image16.png` | `java-upgrade-report.md` open in Preview |
+| `image17.png` | Bob IDE settings or menu path used to open **Modes** |
+| `image18.png` | Modes list with **Modernization Architect** visible |
+| `image19.png` | The **Role Definition** of the custom mode |
+| `image20.png` | `.bob/rules-modernization-architect/` expanded in Explorer |
+| `image21.png` | One representative XML rule file open in the editor |
+| `image22.png` | **Modernization Architect** selected in the mode picker |
+| `image23.png` | Bob's modernization todo list |
+| `image24.png` | `modern-netbanking/` visible in Explorer after generation |
+| `image25.png` | Generated OpenShift artifacts visible in Explorer |
+| `image26.png` | Generated Dockerfile or Kubernetes manifest open in the editor |
+| `image27.png` | Agent mode with the troubleshooting prompt `Install Maven` typed |
 
 ---
 
