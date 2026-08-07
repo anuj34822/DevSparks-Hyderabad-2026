@@ -153,33 +153,29 @@ You need this to preview the diagrams Bob generates in Step 2.
 
 **Goal:** Let Bob read the legacy codebase and produce full documentation and diagrams — without you writing a single line.
 
-1. Click the mode selector at the bottom-right of Bob IDE and select **Ask**
+1. Click the mode selector at the bottom of the Bob chat panel and select **Ask**
 
-<!-- image7: mode selector with Ask highlighted -->
+![Mode selector showing Ask selected](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image7.png)
 
-2. Type this prompt in the chat and click the **Enhance Prompt** icon (✨) before hitting Enter:
+2. Type this prompt in the chat and press **Enter**:
 
    > *"Help me understand this legacy-netbanking application. Save the generated documentation and diagrams in legacy-netbanking-documentation directory. Make sure to generate required PlantUML diagrams like sequence diagram along with mermaid architecture and ER diagram etc of current implementation."*
 
-<!-- image8: prompt typed with Enhance Prompt icon highlighted -->
+![Chat input showing the prompt typed and ready to send](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image8.png)
 
-3. Bob rewrites your prompt into a more detailed version. Review it and press **Enter**
+3. Bob creates a task list and starts working. Click **Approve** for each task as it appears
 
-<!-- image9: Bob's enhanced prompt in chat -->
+<!-- image9: Bob's task list with Approve buttons -->
 
-4. Bob creates a task list and starts working. Click **Approve** for each task as it appears
+4. When Bob finishes, right-click the generated `.md` file in Explorer and select **Open Preview**
 
-<!-- image10: Bob's task list with Approve buttons -->
+<!-- image10: right-click .md file showing Open Preview -->
 
-5. When Bob finishes, right-click the generated `.md` file in Explorer and select **Open Preview**
+<!-- image11: documentation rendered in Preview panel -->
 
-<!-- image11: right-click .md file showing Open Preview -->
+5. Right-click any `.puml` file and select **Preview PlantUML File** to see the diagrams
 
-<!-- image12: documentation rendered in Preview panel -->
-
-6. Right-click any `.puml` file and select **Preview PlantUML File** to see the diagrams
-
-<!-- image13: right-click .puml file showing Preview PlantUML File -->
+<!-- image12: right-click .puml file showing Preview PlantUML File -->
 
 ---
 
@@ -239,13 +235,13 @@ Before you run anything, open `.bob/skills/java-upgrade/SKILL.md` and read it. Y
 
 1. In the Bob chat, type `/java-upgrade` and press **Enter**
 
-<!-- image14: /java-upgrade typed in chat -->
+<!-- image13: /java-upgrade typed in chat -->
 
 2. Bob asks you to confirm two things:
    - Project path → type `legacy-netbanking`
    - Target Java version → type `17`
 
-<!-- image15: Bob asking path + version -->
+<!-- image14: Bob asking path + version -->
 
 3. Bob works through the upgrade automatically. Approve each task as it appears:
    - Updates `pom.xml` compiler settings to Java 17
@@ -254,11 +250,11 @@ Before you run anything, open `.bob/skills/java-upgrade/SKILL.md` and read it. Y
    - Fixes any dependency conflicts
    - Runs `mvn clean package` to validate the build
 
-<!-- image16: Bob's upgrade task list -->
+<!-- image15: Bob's upgrade task list -->
 
 4. When complete, Bob creates `legacy-netbanking/java-upgrade-report.md`. Open it in Preview to see the Mermaid flowchart of every change applied
 
-<!-- image17: java-upgrade-report.md in Preview -->
+<!-- image16: java-upgrade-report.md in Preview -->
 
 ---
 
@@ -274,31 +270,31 @@ This step uses the **Modernization Architect** custom mode backed by 6 rule file
 
 1. Click the gear icon (⚙) at the bottom-left of Bob IDE → select **Modes**
 
-<!-- image18: Settings menu showing Modes option -->
+<!-- image17: Settings menu showing Modes option -->
 
 2. Find **Modernization Architect** in the list and open it
 
-<!-- image19: Modes list with Modernization Architect visible -->
+<!-- image18: Modes list with Modernization Architect visible -->
 
 3. Read the Role Definition — this is the text that tells Bob how to think and behave during migration
 
-<!-- image20: Role Definition text -->
+<!-- image19: Role Definition text -->
 
 **Step B — Explore the Rules**
 
 4. In the Explorer panel, expand `.bob/rules-modernization-architect/` — you will see 6 XML files
 
-<!-- image21: rules folder expanded with 6 XML files -->
+<!-- image20: rules folder expanded with 6 XML files -->
 
 5. Open one of them — you will see how architecture decisions and migration constraints are written in plain XML. This is what makes Bob's output consistent and governed — not just smart, but bounded by your standards
 
-<!-- image22: one XML rule file open in editor -->
+<!-- image21: one XML rule file open in editor -->
 
 **Step C — Run the Migration**
 
-6. Click the mode selector at the bottom-right and select **Modernization Architect**
+6. Click the mode selector at the bottom of the Bob chat panel and select **Modernization Architect**
 
-<!-- image23: mode selector showing Modernization Architect selected -->
+<!-- image22: mode selector showing Modernization Architect selected -->
 
 7. Type this prompt and press **Enter**:
 
@@ -306,11 +302,11 @@ This step uses the **Modernization Architect** custom mode backed by 6 rule file
 
 8. Bob produces a Todo list covering the full migration. Approve each task as it runs
 
-<!-- image24: Bob's migration Todo list -->
+<!-- image23: Bob's migration Todo list -->
 
 9. When complete, the Explorer panel shows a new `modern-netbanking/` folder with the fully migrated project
 
-<!-- image25: Explorer with modern-netbanking/ folder -->
+<!-- image24: Explorer with modern-netbanking/ folder -->
 
 > If Bob stops mid-way, type: *"Complete remaining tasks from the todo list"*
 
@@ -324,9 +320,9 @@ Still in **Modernization Architect** mode, type:
 
 Bob generates a `Dockerfile`, Kubernetes YAML manifests, and a `deploy.sh` script.
 
-<!-- image26: Explorer with Dockerfile + K8s manifests -->
+<!-- image25: Explorer with Dockerfile + K8s manifests -->
 
-<!-- image27: Dockerfile open in editor -->
+<!-- image26: Dockerfile open in editor -->
 
 ---
 
@@ -349,7 +345,7 @@ Bob generates a `Dockerfile`, Kubernetes YAML manifests, and a `deploy.sh` scrip
 ### Maven not installed
 Switch to **Agent** mode and type: *"Install Maven"*
 
-<!-- image28: Agent mode with Install Maven typed -->
+<!-- image27: Agent mode with Install Maven typed -->
 
 ### Build fails during migration
 Click **Fix it** next to the error. Bob reads the failure and applies a targeted fix automatically.
