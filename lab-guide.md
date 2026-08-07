@@ -11,33 +11,36 @@
 - [Pre-requisites](#pre-requisites)
 - [Hands-on Lab Steps](#hands-on-lab-steps)
   - [Step 1 — Import Project into Bob Workspace](#step-1--import-project-into-bob-workspace)
-  - [Step 2 — Reverse Engineering](#step-2--reverse-engineering)
-  - [Step 3 — Java Version Upgrade](#step-3--java-version-upgrade)
-  - [Step 4 — Full Application Modernization](#step-4--full-application-modernization)
-  - [Step 5 — OpenShift Deployment Artifacts (Optional)](#step-5--openshift-deployment-artifacts-optional)
-- [Key Modernization Achievements](#key-modernization-achievements)
+  - [Step 2 — Reverse Engineering in Ask Mode](#step-2--reverse-engineering-in-ask-mode)
+  - [Step 3 — Explore and Run the Skill](#step-3--explore-and-run-the-skill)
+  - [Step 4 — Explore the Custom Mode and One Rule](#step-4--explore-the-custom-mode-and-one-rule)
+  - [Step 5 — Run Full Modernization with the Custom Mode](#step-5--run-full-modernization-with-the-custom-mode)
+  - [Step 6 — OpenShift Deployment Artifacts (Optional)](#step-6--openshift-deployment-artifacts-optional)
+- [What Participants Should Learn](#what-participants-should-learn)
 - [Troubleshooting](#troubleshooting)
 
 ---
 
 ## About this Lab
 
-This lab shows you how to use IBM Bob to modernize a legacy Java application — not just by running commands, but by building a **reusable system** that you can apply to any codebase.
+This lab shows you how to use IBM Bob to modernize a legacy Java application by building and using a **reusable Bob system** rather than relying on a premium Java modernization package.
 
-You will learn how to create three things in Bob and use them together:
+You will learn how to create and use three Bob building blocks together:
 
-- **A custom Mode** — gives Bob a specific persona and expertise. Bob behaves like a Modernization Architect every time you use it
-- **A Skill** — a step-by-step playbook that Bob follows when you call `/java-upgrade`. No manual steps, no guesswork
-- **Rules** — XML files that encode your architecture standards and constraints into Bob's reasoning
+- **A custom Mode** — gives Bob a specific persona and expertise. Bob behaves like a Modernization Architect every time you use it.
+- **A Skill** — a step-by-step playbook that Bob follows when you call `/java-upgrade`. No manual steps, no guesswork.
+- **Rules** — XML files that encode architecture standards and constraints into Bob's reasoning.
 
-These three together form a system. Once built, any developer on your team can clone this repo, open it in Bob, and get the same consistent results.
+These three pieces work together as one system. Once built, any developer on your team can clone this repo, open it in Bob, and get the same consistent results.
 
-We apply this system to a **Legacy Struts 1.3** NetBanking application and:
+We use that system on a **legacy Struts 1.3 NetBanking application** to:
 
-- Reverse engineer the codebase to produce documentation, architecture diagrams, and ER diagrams
+- Reverse engineer the codebase and generate documentation and diagrams
 - Upgrade Java from 1.8 to 17 using the `/java-upgrade` skill
-- Migrate the full application to Spring Boot 3.x + React 18 + PostgreSQL 15 using the Modernization Architect mode
-- Generate OpenShift deployment artifacts — Dockerfile, Kubernetes manifests, and deploy scripts
+- Run a governed modernization using a custom mode plus rules
+- Generate OpenShift deployment artifacts
+
+> **Important:** The purpose of this lab is not to teach a premium modernization workflow. The purpose is to teach how Bob can be extended with a custom mode, a skill, and rules, using Java modernization as the scenario.
 
 ---
 
@@ -68,17 +71,17 @@ This is a legacy NetBanking application built on:
 | Config | web.xml, struts-config.xml |
 | Packaging | WAR |
 
-### How this lab is structured — the Mode + Skill + Rules system
+### The Three Bob Assets in This Repo
 
-Before you start, take a minute to understand what is already in this repo and why:
+Before you start, identify the three Bob assets used throughout the lab:
 
-| What | What it does | Where it lives |
+| Asset | What it teaches | Where it lives |
 |---|---|---|
-| **Mode** | Gives Bob the persona of a Modernization Architect — with the right tools, permissions, and expertise | `.bob/custom_modes.yaml` |
-| **Skill** | Tells Bob exactly how to upgrade Java — step by step, no ambiguity | `.bob/skills/java-upgrade/SKILL.md` |
-| **Rules** | 6 XML files that encode migration standards and architecture constraints Bob must follow | `.bob/rules-modernization-architect/` |
+| **Custom Mode** | How to give Bob a reusable persona and operating model | `.bob/custom_modes.yaml` |
+| **Skill** | How to encode a repeatable workflow that can be invoked with a slash command | `.bob/skills/java-upgrade/SKILL.md` |
+| **Rule** | How to constrain Bob with explicit modernization standards | `.bob/rules-modernization-architect/` |
 
-You will use each of these during the lab. By the end, you will understand how to build this kind of system yourself for any use case.
+> For the workshop, keep your attention on **one custom mode, one skill, and one representative rule**. The rest of the files are supporting implementation details.
 
 ---
 
@@ -97,7 +100,7 @@ You need this to preview the diagrams Bob generates in Step 2.
 2. Search for **PlantUML**
 3. Install **PlantUML Markdown Preview**
 
-![PlantUML Markdown Preview extension in the Extensions panel](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image1.png)
+![PlantUML Markdown Preview extension in the Extensions panel](https://raw.githubusercontent.com/anuj34822/DevSparks-Hyderabad-2026/main/images/image1.png)
 
 ---
 
@@ -105,93 +108,104 @@ You need this to preview the diagrams Bob generates in Step 2.
 
 > **Before you begin:** Make sure you are logged in to IBM Bob IDE. Open Bob and confirm your account is active — you should see your name or profile icon at the bottom-left of the IDE.
 
-> **Note:** Almost everything in this lab is done through prompts. You type a sentence or a command in Bob — Bob does the rest. The only exception is Step 3, where Maven and Java 17 must be installed on your machine so Bob can run the build. Instructions for that are included at the start of Step 3.
+> **Lab lens:** At every step, ask yourself which Bob capability you are learning: **Ask mode**, **custom mode**, **skill**, or **rule**. The lab is successful only if participants understand those Bob features, not just the modernization output.
 
 ---
 
 ### Step 1 — Import Project into Bob Workspace
 
-**Goal:** Download the lab project and open it in Bob.
+**Goal:** Download the lab project, open it in Bob, and locate the three Bob assets used in this workshop.
 
 1. Go to the lab repo and download the ZIP:
    ```
-   https://github.com/anuj34822/java-modernization-lab
+   https://github.com/anuj34822/DevSparks-Hyderabad-2026
    ```
-   Click **Code → Download ZIP**. Extract it — you will get a folder named `java-modernization-lab-main`.
+   Click **Code → Download ZIP**. Extract it — you will get a folder named `DevSparks-Hyderabad-2026-main`.
 
-![GitHub repo showing Code → Download ZIP](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image2.png)
+![GitHub repo showing Code → Download ZIP](https://raw.githubusercontent.com/anuj34822/DevSparks-Hyderabad-2026/main/images/image2.png)
 
 2. Open **IBM Bob IDE**. You will see the Welcome screen below. Click **Open...** from the Start menu.
 
-![Bob IDE Welcome screen](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image3.png)
+![Bob IDE Welcome screen](https://raw.githubusercontent.com/anuj34822/DevSparks-Hyderabad-2026/main/images/image3.png)
 
-3. Navigate to the extracted `java-modernization-lab-main` folder and click **Open**.
+3. Navigate to the extracted `DevSparks-Hyderabad-2026-main` folder and click **Open**.
 
-![Folder picker showing java-modernization-lab-main selected](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image4.png)
+![Folder picker showing DevSparks-Hyderabad-2026-main selected](https://raw.githubusercontent.com/anuj34822/DevSparks-Hyderabad-2026/main/images/image4.png)
 
 4. Bob may show a **Restricted Mode** banner at the top. Click **Manage** → **Trust** to enable all features.
 
-![Restricted Mode / Workspace Trust dialog — click Trust](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image5.png)
+![Restricted Mode / Workspace Trust dialog — click Trust](https://raw.githubusercontent.com/anuj34822/DevSparks-Hyderabad-2026/main/images/image5.png)
 
 5. Confirm the Explorer panel on the left shows:
 
    ```
-   java-modernization-lab-main/
+   DevSparks-Hyderabad-2026-main/
    ├── .bob/
    ├── images/
    ├── legacy-netbanking/
    └── lab-guide.md
    ```
 
-![Explorer panel showing the project structure with .bob/ highlighted](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image6.png)
+![Explorer panel showing the project structure with .bob/ highlighted](https://raw.githubusercontent.com/anuj34822/DevSparks-Hyderabad-2026/main/images/image6.png)
 
-   > **Notice the `.bob/` folder** — this contains the custom Mode, Skill, and all 6 Rule files that power this lab. You get everything pre-configured just by downloading. Nothing to set up manually.
+6. Expand `.bob/` and identify these three things before proceeding:
+   - `.bob/custom_modes.yaml`
+   - `.bob/skills/java-upgrade/SKILL.md`
+   - one XML rule file under `.bob/rules-modernization-architect/`
+
+> **What to understand here:** this lab is built around those three Bob assets. The legacy application is the target system; the real learning objective is how Bob is extended.
 
 ---
 
-### Step 2 — Reverse Engineering
+### Step 2 — Reverse Engineering in Ask Mode
 
-**Goal:** Let Bob read the legacy codebase and produce full documentation and diagrams — without you writing a single line.
+**Goal:** Use Bob's built-in **Ask** mode to understand the legacy application before using the custom assets.
 
-1. Click the mode selector at the bottom of the Bob chat panel and select **Ask**
+1. Click the mode selector at the bottom of the Bob chat panel and select **Ask**.
 
-![Mode selector showing Ask selected](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image7.png)
+![Mode selector showing Ask selected](https://raw.githubusercontent.com/anuj34822/DevSparks-Hyderabad-2026/main/images/image7.png)
 
 2. Enter this prompt, click the **Enhance Prompt** icon, review the enhanced prompt, and then press **Enter**:
 
    > *"Analyze the legacy-netbanking Java EE application end-to-end and generate a comprehensive documentation package saved to legacy-netbanking-documentation/. The package must include: (1) a Mermaid system architecture diagram (layers + deployment topology), (2) a Mermaid ER diagram with all tables, columns, types, FKs, and indexes, (3) a Mermaid class diagram covering all 5 Java packages and their relationships, (4) a Mermaid request-flow diagram with the full Struts URL routing table and session state machine, (5) a Mermaid data-flow diagram (Level 0 + Level 1) calling out critical race conditions, (6) a Mermaid modernization roadmap showing legacy→modern technology mapping and a target architecture, (7) a PlantUML sequence diagram file (.puml) with at minimum 6 flows: Login, Account Summary, Fund Transfer (including failure paths), Transaction History, Admin Create User, and DB Initialization, (8) a PlantUML component diagram (.puml) annotating architectural anti-patterns, (9) a Security Analysis document cataloguing all vulnerabilities by CVSS severity (Critical/High/Medium/Low) with file references and remediation guidance, and (10) a full API/URL reference with HTTP method, handler, auth requirements, and ActionForm field mappings. Each document must reference the actual source files and concrete class/method names found by reading the codebase — no assumptions."*
 
-![Chat input showing the extended reverse-engineering prompt typed and ready to enhance](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image8.png)
+![Chat input showing the extended reverse-engineering prompt typed and ready to enhance](https://raw.githubusercontent.com/anuj34822/DevSparks-Hyderabad-2026/main/images/image8.png)
 
-3. Bob automatically expands your prompt into a detailed task plan. Review it and press **Enter** to confirm
+3. Bob automatically expands your prompt into a detailed task plan. Review it and press **Enter** to confirm.
 
-![Bob's expanded prompt ready to run](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image9.png)
+![Bob's expanded prompt ready to run](https://raw.githubusercontent.com/anuj34822/DevSparks-Hyderabad-2026/main/images/image9.png)
 
-4. Bob creates a task list and starts working. Click **Approve** for each task as it appears
+4. Bob creates a task list and starts working. Click **Approve** for each task as it appears.
 
 <!-- image10: Bob's task list with Approve buttons -->
 
-5. When Bob finishes, right-click the generated `.md` file in Explorer and select **Open Preview**
+5. When Bob finishes, right-click the generated `.md` file in Explorer and select **Open Preview**.
 
 <!-- image11: right-click .md file showing Open Preview -->
 
+6. Right-click any `.puml` file and select **Preview PlantUML File** to see the diagrams.
+
 <!-- image12: documentation rendered in Preview panel -->
 
-6. Right-click any `.puml` file and select **Preview PlantUML File** to see the diagrams
-
-<!-- image13: right-click .puml file showing Preview PlantUML File -->
+> **What to understand here:** Ask mode is the baseline Bob capability. It helps participants understand the application before they use a skill or a custom mode.
 
 ---
 
-### Step 3 — Java Version Upgrade
+### Step 3 — Explore and Run the Skill
 
-**Goal:** Upgrade the project from Java 8 to Java 17 using the `/java-upgrade` Bob skill.
+**Goal:** Understand how a Bob skill works, then use the `/java-upgrade` skill to upgrade the application from Java 8 to Java 17.
 
-> **This is where the Skill comes in.** The **Skill** (`/java-upgrade`) is defined in `.bob/skills/java-upgrade/SKILL.md` — the file you can see in the Explorer right now. When you type `/java-upgrade`, Bob loads that playbook and follows it exactly, step by step, without you having to remember or direct anything.
+1. In the Explorer, open `.bob/skills/java-upgrade/SKILL.md` and read it before running anything.
 
-#### Before you start this step — install Java 17 and Maven
+2. Look for the key steps encoded in the skill:
+   - update `pom.xml`
+   - add the OpenRewrite plugin
+   - run `mvn rewrite:run`
+   - fix dependency conflicts
+   - validate with `mvn clean package`
+   - write an audit report
 
-The `/java-upgrade` skill runs real Maven commands behind the scenes (`mvn rewrite:run`, `mvn clean package`). Bob handles everything else through prompts, but your machine needs these two tools installed.
+3. Install Java 17 and Maven if they are not already available.
 
 **OpenJDK 17**
 ```sh
@@ -217,106 +231,93 @@ sudo dnf install maven
 winget install --id Apache.Maven
 ```
 
-**SDKMAN** *(macOS / Linux — alternative way to install both)*
-```sh
-curl -s "https://get.sdkman.io" | bash
-# then:
-sdk install java 17-tem
-sdk install maven
-```
-
-Once installed, verify both are available:
+4. Verify both tools are available before continuing:
 ```sh
 java -version
 mvn -version
 ```
 
-Both commands should return version numbers before you proceed.
+5. In the Bob chat, type `/java-upgrade` and press **Enter**.
 
----
+<!-- image13: /java-upgrade typed in chat -->
 
-Before you run anything, open `.bob/skills/java-upgrade/SKILL.md` and read it. You will see every step Bob is about to follow: update `pom.xml`, add the OpenRewrite plugin, run `mvn rewrite:run`, fix dependency conflicts, validate the build, write an audit report. Reading it now helps you understand what Bob is doing and why — and shows you how a Skill is written so you can build your own.
-
-1. In the Bob chat, type `/java-upgrade` and press **Enter**
-
-<!-- image14: /java-upgrade typed in chat -->
-
-2. Bob asks you to confirm two things:
+6. Bob asks you to confirm two things:
    - Project path → type `legacy-netbanking`
    - Target Java version → type `17`
 
-<!-- image15: Bob asking path + version -->
+<!-- image14: Bob asking path + version -->
 
-3. Bob works through the upgrade automatically. Approve each task as it appears:
-   - Updates `pom.xml` compiler settings to Java 17
-   - Adds the OpenRewrite Maven plugin
-   - Runs `mvn rewrite:run` to apply the UpgradeToJava17 recipe
-   - Fixes any dependency conflicts
-   - Runs `mvn clean package` to validate the build
+7. Bob works through the upgrade automatically. Approve each task as it appears.
 
-<!-- image16: Bob's upgrade task list -->
+<!-- image15: Bob's upgrade task list -->
 
-4. When complete, Bob creates `legacy-netbanking/java-upgrade-report.md`. Open it in Preview to see the Mermaid flowchart of every change applied
+8. When complete, Bob creates `legacy-netbanking/java-upgrade-report.md`. Open it in Preview to see the Mermaid flowchart of every change applied.
 
-<!-- image17: java-upgrade-report.md in Preview -->
+<!-- image16: java-upgrade-report.md in Preview -->
+
+> **What to understand here:** the skill is a reusable playbook. Participants should see that the slash command is not magic — it is backed by an explicit file they can read and customize.
 
 ---
 
-### Step 4 — Full Application Modernization
+### Step 4 — Explore the Custom Mode and One Rule
 
-**Goal:** Migrate the full application to Spring Boot 3.x + React 18 + PostgreSQL.
+**Goal:** Understand how a custom mode and a rule shape Bob's behavior before running the larger modernization.
 
-> **This is where the Mode and Rules come in together.** The **Mode** (Modernization Architect) gives Bob the right persona and expertise for migration. The **Rules** (6 XML files in `.bob/rules-modernization-architect/`) tell Bob what architecture decisions to make and what constraints to follow. Both are already in the repo — you just switch into the Mode and Bob picks up everything automatically.
-
-This step uses the **Modernization Architect** custom mode backed by 6 rule files. Spend a few minutes exploring the setup before running it — this is the part where you see how the system is built.
-
-**Step A — Explore the Mode**
-
-1. Click the gear icon (⚙) at the bottom-left of Bob IDE → select **Modes**
+1. Click the gear icon at the bottom-left of Bob IDE and open **Modes**.
 
 <!-- image17: Settings menu showing Modes option -->
 
-2. Find **Modernization Architect** in the list and open it
+2. Find **Modernization Architect** and open it.
 
 <!-- image18: Modes list with Modernization Architect visible -->
 
-3. Read the Role Definition — this is the text that tells Bob how to think and behave during migration
+3. Read the **Role Definition** and identify what kind of persona and behavior the mode gives Bob.
 
 <!-- image19: Role Definition text -->
 
-**Step B — Explore the Rules**
+4. In the Explorer panel, expand `.bob/rules-modernization-architect/`.
 
-4. In the Explorer panel, expand `.bob/rules-modernization-architect/` — you will see 6 XML files
+<!-- image20: rules folder expanded with XML files -->
 
-<!-- image20: rules folder expanded with 6 XML files -->
-
-5. Open one of them — you will see how architecture decisions and migration constraints are written in plain XML. This is what makes Bob's output consistent and governed — not just smart, but bounded by your standards
+5. Open **one representative XML rule file** and read it carefully.
 
 <!-- image21: one XML rule file open in editor -->
 
-**Step C — Run the Migration**
+6. Ask participants these two questions before moving on:
+   - How is the **custom mode** changing Bob's role?
+   - How is the **rule** constraining Bob's decisions?
 
-6. Click the mode selector at the bottom of the Bob chat panel and select **Modernization Architect**
+> **What to understand here:** the mode defines Bob's operating persona, while the rule adds governance. This is the core teaching point of the lab.
+
+---
+
+### Step 5 — Run Full Modernization with the Custom Mode
+
+**Goal:** Use the **Modernization Architect** mode and the rules to drive a governed modernization.
+
+1. Click the mode selector at the bottom of the Bob chat panel and select **Modernization Architect**.
 
 <!-- image22: mode selector showing Modernization Architect selected -->
 
-7. Type this prompt and press **Enter**:
+2. Type this prompt and press **Enter**:
 
    > *"Modernize the legacy-netbanking application. Backend: Spring Boot 3.x, Java 17, PostgreSQL, JWT authentication. Frontend: React 18 SPA."*
 
-8. Bob produces a Todo list covering the full migration. Approve each task as it runs
+3. Bob produces a Todo list covering the full migration. Approve each task as it runs.
 
 <!-- image23: Bob's migration Todo list -->
 
-9. When complete, the Explorer panel shows a new `modern-netbanking/` folder with the fully migrated project
+4. When complete, the Explorer panel shows a new `modern-netbanking/` folder with the fully migrated project.
 
 <!-- image24: Explorer with modern-netbanking/ folder -->
 
 > If Bob stops mid-way, type: *"Complete remaining tasks from the todo list"*
 
+> **What to understand here:** this is the point where participants see the custom mode and rule set affecting the output. This step should be presented as governed Bob behavior, not just a migration demo.
+
 ---
 
-### Step 5 — OpenShift Deployment Artifacts *(Optional)*
+### Step 6 — OpenShift Deployment Artifacts *(Optional)*
 
 Still in **Modernization Architect** mode, type:
 
@@ -328,19 +329,19 @@ Bob generates a `Dockerfile`, Kubernetes YAML manifests, and a `deploy.sh` scrip
 
 <!-- image26: Dockerfile open in editor -->
 
+> **What to understand here:** the same custom mode continues to govern follow-on work beyond the core migration.
+
 ---
 
-## Key Modernization Achievements
+## What Participants Should Learn
 
-| Area | Result |
-|---|---|
-| Framework | Struts 1.x → Spring Boot 3.x · JSP → React 18 SPA |
-| Database | SQLite → PostgreSQL 15 with Flyway migrations |
-| Security | HTTP Session → JWT + BCrypt |
-| Runtime | Java 8 → Java 17 via OpenRewrite AST recipes |
-| Deployment | WAR → Docker + OpenShift / Kubernetes |
-| Functional Parity | All features preserved — transfers, account history, admin |
-| Reusable System | The Mode + Skill + Rules in this repo work on any Java codebase |
+By the end of this lab, participants should be able to explain:
+
+1. how **Ask mode** helps reverse engineer an unfamiliar application
+2. how a **Skill** turns a repeatable workflow into a reusable slash command
+3. how a **custom Mode** changes Bob's persona and operating style
+4. how a **Rule** constrains Bob's decisions using explicit standards
+5. how those three building blocks can replace a premium workflow with a transparent, teachable Bob-based system
 
 ---
 
