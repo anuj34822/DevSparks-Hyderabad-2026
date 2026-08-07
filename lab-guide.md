@@ -142,21 +142,40 @@ You will use each of these during the lab. By the end, you will understand how t
 
 ### 4.1 Import Project into Bob Workspace
 
-1. Clone the repo:
-   ```sh
-   git clone https://github.com/anuj34822/java-modernization-lab
+**Goal:** Clone the lab repo directly inside Bob — no terminal needed.
+
+1. Open **IBM Bob IDE**. You will see the Welcome screen with the Start menu on the left.
+
+![Bob IDE Welcome screen showing the Start menu with Clone Git Repository option](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image2.png)
+
+2. Click **"Clone Git Repository..."** from the Start menu.
+
+   A URL input bar appears at the top of Bob. Paste this URL and press **Enter**:
    ```
-   > Windows: if git is not installed, run `winget install --id Git.Git` first.
+   https://github.com/anuj34822/java-modernization-lab
+   ```
 
-2. Open IBM Bob IDE → **File → Open Folder** → select the `java-modernization-lab` folder
+![URL input bar at the top of Bob with the repo URL entered](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image3.png)
 
-![Bob IDE showing File → Open Folder menu](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image2.png)
+3. Bob asks where to save the repo. Select your **Documents** folder (or any preferred folder) and click **"Select as Repository Destination"**.
 
-![Folder picker with java-modernization-lab selected](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image3.png)
+![Folder picker showing the destination folder selected](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image4.png)
 
-3. Confirm the Explorer panel shows: `.bob/`, `images/`, `legacy-netbanking/`, `lab-guide.md`
+4. When the clone completes, Bob asks **"Would you like to open the cloned repository?"** — click **Open**.
 
-![Bob IDE Explorer panel showing the correct folder structure](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image4.png)
+5. The Explorer panel on the left shows the project. Confirm you can see:
+
+   ```
+   java-modernization-lab/
+   ├── .bob/
+   ├── images/
+   ├── legacy-netbanking/
+   └── lab-guide.md
+   ```
+
+![Bob Explorer panel showing the correct folder structure with .bob/ highlighted](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image5.png)
+
+   > **Notice the `.bob/` folder** — this contains the custom Mode, Skill, and all 6 Rule files that power this lab. You get everything pre-configured just by cloning. Nothing to set up manually.
 
 ---
 
@@ -166,33 +185,31 @@ You will use each of these during the lab. By the end, you will understand how t
 
 1. Click the mode selector at the bottom-right of Bob IDE and select **Ask**
 
-![Mode selector at bottom-right with Ask highlighted](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image5.png)
+![Mode selector at bottom-right with Ask highlighted](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image6.png)
 
 2. Type this prompt in the chat and click the **Enhance Prompt** icon (✨) before hitting Enter:
 
    > *"Help me understand this legacy-netbanking application. Save the generated documentation and diagrams in legacy-netbanking-documentation directory. Make sure to generate required PlantUML diagrams like sequence diagram along with mermaid architecture and ER diagram etc of current implementation."*
 
-![Chat input showing the prompt typed with the Enhance Prompt icon highlighted](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image6.png)
+![Chat input showing the prompt typed with the Enhance Prompt icon highlighted](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image7.png)
 
 3. Bob rewrites your prompt into a more detailed version. Review it and press **Enter**
 
-![Bob's enhanced version of the prompt shown in the chat](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image7.png)
+![Bob's enhanced version of the prompt shown in the chat](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image8.png)
 
 4. Bob creates a task list and starts working. Click **Approve** for each task as it appears
 
-![Bob's task list running the reverse engineering with Approve buttons](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image8.png)
+![Bob's task list running the reverse engineering with Approve buttons](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image9.png)
 
 5. When Bob finishes, right-click the generated `.md` file in Explorer and select **Open Preview**
 
-![Right-click context menu on the generated .md file showing Open Preview](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image9.png)
+![Right-click context menu on the generated .md file showing Open Preview](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image10.png)
 
-![Generated documentation rendered in the Preview panel](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image10.png)
+![Generated documentation rendered in the Preview panel](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image11.png)
 
 6. Right-click any `.puml` file and select **Preview PlantUML File** to see the diagrams
 
-![Right-click context menu on a .puml file showing Preview PlantUML File](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image11.png)
-
-![Sequence diagram rendered in the PlantUML preview panel](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image12.png)
+![Right-click context menu on a .puml file showing Preview PlantUML File](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image12.png)
 
 ---
 
