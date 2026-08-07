@@ -157,11 +157,11 @@ You need this to preview the diagrams Bob generates in Step 2.
 
 ![Mode selector showing Ask selected](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image7.png)
 
-2. Type this prompt in the chat and press **Enter**:
+2. Enter this prompt, click the **Enhance Prompt** icon, review the enhanced prompt, and then press **Enter**:
 
-   > *"Help me understand this legacy-netbanking application. Save the generated documentation and diagrams in legacy-netbanking-documentation directory. Make sure to generate required PlantUML diagrams like sequence diagram along with mermaid architecture and ER diagram etc of current implementation."*
+   > *"Analyze the legacy-netbanking Java EE application end-to-end and generate a comprehensive documentation package saved to legacy-netbanking-documentation/. The package must include: (1) a Mermaid system architecture diagram (layers + deployment topology), (2) a Mermaid ER diagram with all tables, columns, types, FKs, and indexes, (3) a Mermaid class diagram covering all 5 Java packages and their relationships, (4) a Mermaid request-flow diagram with the full Struts URL routing table and session state machine, (5) a Mermaid data-flow diagram (Level 0 + Level 1) calling out critical race conditions, (6) a Mermaid modernization roadmap showing legacy→modern technology mapping and a target architecture, (7) a PlantUML sequence diagram file (.puml) with at minimum 6 flows: Login, Account Summary, Fund Transfer (including failure paths), Transaction History, Admin Create User, and DB Initialization, (8) a PlantUML component diagram (.puml) annotating architectural anti-patterns, (9) a Security Analysis document cataloguing all vulnerabilities by CVSS severity (Critical/High/Medium/Low) with file references and remediation guidance, and (10) a full API/URL reference with HTTP method, handler, auth requirements, and ActionForm field mappings. Each document must reference the actual source files and concrete class/method names found by reading the codebase — no assumptions."*
 
-![Chat input showing the prompt typed and ready to send](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image8.png)
+![Chat input showing the extended reverse-engineering prompt typed and ready to enhance](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image8.png)
 
 3. Bob automatically expands your prompt into a detailed task plan. Review it and press **Enter** to confirm
 
