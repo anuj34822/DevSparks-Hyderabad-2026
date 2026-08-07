@@ -11,21 +11,21 @@
 ---
 
 ## Contents
-1. [About this Lab](#1-about-this-lab)
-2. [Pre-requisites](#2-pre-requisites)
-3. [Overview](#3-overview)
-4. [Hands-on Lab Steps](#4-hands-on-lab-steps)
-   - 4.1 [Import Project into Bob Workspace](#41-import-project-into-bob-workspace)
-   - 4.2 [Reverse Engineering](#42-reverse-engineering)
-   - 4.3 [Java Version Upgrade](#43-java-version-upgrade)
-   - 4.4 [Full Application Modernization](#44-full-application-modernization)
-   - 4.5 [OpenShift Deployment Artifacts (Optional)](#45-openshift-deployment-artifacts-optional)
-5. [Key Modernization Achievements](#5-key-modernization-achievements)
-6. [Troubleshooting](#6-troubleshooting)
+- [About this Lab](#about-this-lab)
+- [Pre-requisites](#pre-requisites)
+- [Overview](#overview)
+- [Hands-on Lab Steps](#hands-on-lab-steps)
+  - [Step 1 — Import Project into Bob Workspace](#step-1--import-project-into-bob-workspace)
+  - [Step 2 — Reverse Engineering](#step-2--reverse-engineering)
+  - [Step 3 — Java Version Upgrade](#step-3--java-version-upgrade)
+  - [Step 4 — Full Application Modernization](#step-4--full-application-modernization)
+  - [Step 5 — OpenShift Deployment Artifacts (Optional)](#step-5--openshift-deployment-artifacts-optional)
+- [Key Modernization Achievements](#key-modernization-achievements)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
-## 1. About this Lab
+## About this Lab
 
 This lab shows you how to use IBM Bob to modernize a legacy Java application — not just by running commands, but by building a **reusable system** that you can apply to any codebase.
 
@@ -46,12 +46,14 @@ We apply this system to a **Legacy Struts 1.3** NetBanking application and:
 
 ---
 
-## 2. Pre-requisites
+## Pre-requisites
 
-### 2.1 IBM Bob IDE
+### IBM Bob IDE
 Install IBM Bob from: `https://bob.ibm.com/docs/ide/getting-started/install`
 
-### 2.2 Optional — Install these if you want to run local builds
+> **Make sure you are logged in to Bob IDE before starting the lab.**
+
+### Optional — Install these if you want to run local builds
 
 **OpenJDK 17**
 ```sh
@@ -85,7 +87,7 @@ curl -s "https://get.sdkman.io" | bash
 curl -sL https://get.sdkman.io | sudo bash
 ```
 
-### 2.3 Install PlantUML Plugin
+### Install PlantUML Plugin
 
 You need this to preview the diagrams Bob generates.
 
@@ -95,7 +97,7 @@ You need this to preview the diagrams Bob generates.
 
 ![PlantUML Markdown Preview extension in the Extensions panel](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image1.png)
 
-### 2.4 The Application We Are Modernizing
+### The Application We Are Modernizing
 
 This is a legacy NetBanking application built on:
 
@@ -111,7 +113,7 @@ This is a legacy NetBanking application built on:
 
 ---
 
-## 3. Overview
+## Overview
 
 We take this legacy stack all the way to a modern, cloud-native application:
 
@@ -138,13 +140,17 @@ You will use each of these during the lab. By the end, you will understand how t
 
 ---
 
-## 4. Hands-on Lab Steps
+## Hands-on Lab Steps
 
-### 4.1 Import Project into Bob Workspace
+> **Before you begin:** Make sure you are logged in to IBM Bob IDE. Open Bob and confirm your account is active — you should see your name or profile icon at the bottom-left of the IDE.
+
+---
+
+### Step 1 — Import Project into Bob Workspace
 
 **Goal:** Clone the lab repo directly inside Bob — no terminal needed.
 
-1. Open **IBM Bob IDE**. You will see the Welcome screen with the Start menu on the left.
+1. Open **IBM Bob IDE**. You will see the Welcome screen.
 
 ![Bob IDE Welcome screen showing the Start menu with Clone Git Repository option](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image2.png)
 
@@ -179,7 +185,7 @@ You will use each of these during the lab. By the end, you will understand how t
 
 ---
 
-### 4.2 Reverse Engineering
+### Step 2 — Reverse Engineering
 
 **Goal:** Let Bob read the legacy codebase and produce full documentation and diagrams — without you writing a single line.
 
@@ -213,7 +219,7 @@ You will use each of these during the lab. By the end, you will understand how t
 
 ---
 
-### 4.3 Java Version Upgrade
+### Step 3 — Java Version Upgrade
 
 **Goal:** Upgrade the project from Java 8 to Java 17 using the `/java-upgrade` Bob skill.
 
@@ -221,7 +227,7 @@ You will use each of these during the lab. By the end, you will understand how t
 > ```sh
 > mvn -version
 > ```
-> If this command is not found, install Maven first — see section 2.2.
+> If this command is not found, install Maven first — see the Pre-requisites section.
 
 Before you run anything, open `.bob/skills/java-upgrade/SKILL.md` and read it. This is the Skill Bob will follow. You will see every step: update `pom.xml`, add the OpenRewrite plugin, run `mvn rewrite:run`, fix dependency conflicts, validate the build, write an audit report. Reading it now helps you understand what Bob is doing and why.
 
@@ -250,7 +256,7 @@ Before you run anything, open `.bob/skills/java-upgrade/SKILL.md` and read it. T
 
 ---
 
-### 4.4 Full Application Modernization
+### Step 4 — Full Application Modernization
 
 **Goal:** Migrate the full application to Spring Boot 3.x + React 18 + PostgreSQL.
 
@@ -302,7 +308,7 @@ This step uses the **Modernization Architect** custom mode backed by 6 rule file
 
 ---
 
-### 4.5 OpenShift Deployment Artifacts *(Optional)*
+### Step 5 — OpenShift Deployment Artifacts *(Optional)*
 
 Still in **Modernization Architect** mode, type:
 
@@ -316,7 +322,7 @@ Bob generates a `Dockerfile`, Kubernetes YAML manifests, and a `deploy.sh` scrip
 
 ---
 
-## 5. Key Modernization Achievements
+## Key Modernization Achievements
 
 | Area | Result |
 |---|---|
@@ -330,15 +336,15 @@ Bob generates a `Dockerfile`, Kubernetes YAML manifests, and a `deploy.sh` scrip
 
 ---
 
-## 6. Troubleshooting
+## Troubleshooting
 
-### 6.1 Maven not installed
+### Maven not installed
 Switch to **Agent** mode and type: *"Install Maven"*
 
 ![Agent mode chat with Install Maven typed](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image27.png)
 
-### 6.2 Build fails during migration
+### Build fails during migration
 Click **Fix it** next to the error. Bob reads the failure and applies a targeted fix automatically.
 
-### 6.3 Bob stops before finishing
+### Bob stops before finishing
 Type: *"Complete remaining tasks from the todo list"*
