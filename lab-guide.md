@@ -12,8 +12,8 @@
 
 ## Contents
 - [About this Lab](#about-this-lab)
-- [Pre-requisites](#pre-requisites)
 - [Overview](#overview)
+- [Pre-requisites](#pre-requisites)
 - [Hands-on Lab Steps](#hands-on-lab-steps)
   - [Step 1 — Import Project into Bob Workspace](#step-1--import-project-into-bob-workspace)
   - [Step 2 — Reverse Engineering](#step-2--reverse-engineering)
@@ -46,12 +46,63 @@ We apply this system to a **Legacy Struts 1.3** NetBanking application and:
 
 ---
 
+## Overview
+
+We take this legacy stack all the way to a modern, cloud-native application:
+
+| Layer | Before | After |
+|---|---|---|
+| Runtime | Java 1.8 | Java 17 |
+| Back-end | Struts 1.3 | Spring Boot 3.x |
+| Front-end | JSP + Scriptlets | React 18 SPA |
+| Database | SQLite | PostgreSQL 15 + Flyway |
+| Auth | HTTP Session | JWT + BCrypt |
+| Deployment | WAR on Tomcat | Docker + OpenShift |
+
+### The Application We Are Modernizing
+
+This is a legacy NetBanking application built on:
+
+| Layer | Technology |
+|---|---|
+| Language | Java 8 |
+| Framework | Apache Struts 1.x |
+| Views | JSP with scriptlets |
+| Persistence | Plain JDBC — no ORM |
+| Database | SQLite |
+| Config | web.xml, struts-config.xml |
+| Packaging | WAR |
+
+### How this lab is structured — the Mode + Skill + Rules system
+
+Before you start, take a minute to understand what is already in this repo and why:
+
+| What | What it does | Where it lives |
+|---|---|---|
+| **Mode** | Gives Bob the persona of a Modernization Architect — with the right tools, permissions, and expertise | `.bob/custom_modes.yaml` |
+| **Skill** | Tells Bob exactly how to upgrade Java — step by step, no ambiguity | `.bob/skills/java-upgrade/SKILL.md` |
+| **Rules** | 6 XML files that encode migration standards and architecture constraints Bob must follow | `.bob/rules-modernization-architect/` |
+
+You will use each of these during the lab. By the end, you will understand how to build this kind of system yourself for any use case.
+
+---
+
 ## Pre-requisites
 
 ### IBM Bob IDE
 Install IBM Bob from: `https://bob.ibm.com/docs/ide/getting-started/install`
 
 > **Make sure you are logged in to Bob IDE before starting the lab.**
+
+### Install PlantUML Plugin
+
+You need this to preview the diagrams Bob generates.
+
+1. Click the **Extensions** icon in the Bob IDE sidebar
+2. Search for **PlantUML**
+3. Install **PlantUML Markdown Preview**
+
+![PlantUML Markdown Preview extension in the Extensions panel](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image1.png)
 
 ### Optional — Install these if you want to run local builds
 
@@ -86,57 +137,6 @@ curl -s "https://get.sdkman.io" | bash
 # Ubuntu/Debian/RHEL
 curl -sL https://get.sdkman.io | sudo bash
 ```
-
-### Install PlantUML Plugin
-
-You need this to preview the diagrams Bob generates.
-
-1. Click the **Extensions** icon in the Bob IDE sidebar
-2. Search for **PlantUML**
-3. Install **PlantUML Markdown Preview**
-
-![PlantUML Markdown Preview extension in the Extensions panel](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image1.png)
-
-### The Application We Are Modernizing
-
-This is a legacy NetBanking application built on:
-
-| Layer | Technology |
-|---|---|
-| Language | Java 8 |
-| Framework | Apache Struts 1.x |
-| Views | JSP with scriptlets |
-| Persistence | Plain JDBC — no ORM |
-| Database | SQLite |
-| Config | web.xml, struts-config.xml |
-| Packaging | WAR |
-
----
-
-## Overview
-
-We take this legacy stack all the way to a modern, cloud-native application:
-
-| Layer | Before | After |
-|---|---|---|
-| Runtime | Java 1.8 | Java 17 |
-| Back-end | Struts 1.3 | Spring Boot 3.x |
-| Front-end | JSP + Scriptlets | React 18 SPA |
-| Database | SQLite | PostgreSQL 15 + Flyway |
-| Auth | HTTP Session | JWT + BCrypt |
-| Deployment | WAR on Tomcat | Docker + OpenShift |
-
-### How this lab is structured — the Mode + Skill + Rules system
-
-Before you start, take a minute to understand what is already in this repo and why:
-
-| What | What it does | Where it lives |
-|---|---|---|
-| **Mode** | Gives Bob the persona of a Modernization Architect — with the right tools, permissions, and expertise | `.bob/custom_modes.yaml` |
-| **Skill** | Tells Bob exactly how to upgrade Java — step by step, no ambiguity | `.bob/skills/java-upgrade/SKILL.md` |
-| **Rules** | 6 XML files that encode migration standards and architecture constraints Bob must follow | `.bob/rules-modernization-architect/` |
-
-You will use each of these during the lab. By the end, you will understand how to build this kind of system yourself for any use case.
 
 ---
 
