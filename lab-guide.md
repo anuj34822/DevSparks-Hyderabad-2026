@@ -78,9 +78,9 @@ Before you start, identify the three Bob assets used throughout the lab:
 
 | Asset | What it teaches | Where it lives | Learn more |
 |---|---|---|---|
-| **Custom Mode** | How to give Bob a reusable persona and operating model | `.bob/custom_modes.yaml` | Learn more about custom modes |
-| **Skill** | How to encode a repeatable workflow that can be invoked with a slash command | `.bob/skills/java-upgrade/SKILL.md` | Learn more about skills |
-| **Rule** | How to constrain Bob with explicit modernization standards | `.bob/rules-modernization-architect/` | Learn more about rules |
+| **Custom Mode** | How to give Bob a reusable persona and operating model | `.bob/custom_modes.yaml` | [Learn more about custom modes](https://bob.ibm.com/docs/ide/configuration/custom-modes) |
+| **Skill** | How to encode a repeatable workflow that can be invoked with a slash command | `.bob/skills/java-upgrade/SKILL.md` | [Learn more about skills](https://bob.ibm.com/docs/ide/features/skills) |
+| **Rule** | How to constrain Bob with explicit modernization standards | `.bob/rules-modernization-architect/` | [Learn more about rules](https://bob.ibm.com/docs/ide/configuration/rules) |
 
 > For the workshop, keep your attention on **one custom mode, one skill, and one representative rule**. The rest of the files are supporting implementation details.
 
