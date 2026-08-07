@@ -186,6 +186,8 @@ You need this to preview the diagrams Bob generates in Step 2.
 
 **Goal:** Upgrade the project from Java 8 to Java 17 using the `/java-upgrade` Bob skill.
 
+> **This is where the Skill comes in.** The **Skill** (`/java-upgrade`) is defined in `.bob/skills/java-upgrade/SKILL.md` — the file you can see in the Explorer right now. When you type `/java-upgrade`, Bob loads that playbook and follows it exactly, step by step, without you having to remember or direct anything.
+
 #### Before you start this step — install Java 17 and Maven
 
 The `/java-upgrade` skill runs real Maven commands behind the scenes (`mvn rewrite:run`, `mvn clean package`). Bob handles everything else through prompts, but your machine needs these two tools installed.
@@ -232,7 +234,7 @@ Both commands should return version numbers before you proceed.
 
 ---
 
-Before you run anything, open `.bob/skills/java-upgrade/SKILL.md` and read it. This is the Skill Bob will follow. You will see every step: update `pom.xml`, add the OpenRewrite plugin, run `mvn rewrite:run`, fix dependency conflicts, validate the build, write an audit report. Reading it now helps you understand what Bob is doing and why.
+Before you run anything, open `.bob/skills/java-upgrade/SKILL.md` and read it. You will see every step Bob is about to follow: update `pom.xml`, add the OpenRewrite plugin, run `mvn rewrite:run`, fix dependency conflicts, validate the build, write an audit report. Reading it now helps you understand what Bob is doing and why — and shows you how a Skill is written so you can build your own.
 
 1. In the Bob chat, type `/java-upgrade` and press **Enter**
 
@@ -263,7 +265,9 @@ Before you run anything, open `.bob/skills/java-upgrade/SKILL.md` and read it. T
 
 **Goal:** Migrate the full application to Spring Boot 3.x + React 18 + PostgreSQL.
 
-This step uses the **Modernization Architect** custom mode backed by 6 rule files. Spend a few minutes exploring the setup before running it.
+> **This is where the Mode and Rules come in together.** The **Mode** (Modernization Architect) gives Bob the right persona and expertise for migration. The **Rules** (6 XML files in `.bob/rules-modernization-architect/`) tell Bob what architecture decisions to make and what constraints to follow. Both are already in the repo — you just switch into the Mode and Bob picks up everything automatically.
+
+This step uses the **Modernization Architect** custom mode backed by 6 rule files. Spend a few minutes exploring the setup before running it — this is the part where you see how the system is built.
 
 **Step A — Explore the Mode**
 
@@ -285,7 +289,7 @@ This step uses the **Modernization Architect** custom mode backed by 6 rule file
 
 ![Explorer panel showing .bob/rules-modernization-architect/ expanded with all 6 XML files listed](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image20.png)
 
-5. Open one of them — you will see how architecture decisions and migration constraints are written in plain XML
+5. Open one of them — you will see how architecture decisions and migration constraints are written in plain XML. This is what makes Bob's output consistent and governed — not just smart, but bounded by your standards
 
 ![One of the rule XML files open in the editor showing its structure](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image21.png)
 
