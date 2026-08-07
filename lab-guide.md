@@ -121,9 +121,9 @@ You need this to preview the diagrams Bob generates in Step 2.
 
 ![GitHub repo showing Code → Download ZIP](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image2.png)
 
-2. Open **IBM Bob IDE**. You will see the Welcome screen. Click **Open...** from the Start menu.
+2. Open **IBM Bob IDE**. You will see the Welcome screen below. Click **Open...** from the Start menu.
 
-![Bob IDE Welcome screen with Open highlighted](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image3.png)
+![Bob IDE Welcome screen](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image3.png)
 
 3. Navigate to the extracted `java-modernization-lab-main` folder and click **Open**.
 
