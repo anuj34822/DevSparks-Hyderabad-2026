@@ -113,21 +113,27 @@ You need this to preview the diagrams Bob generates in Step 2.
 
 **Goal:** Download the lab project and open it in Bob.
 
-1. Download the lab project ZIP from:
+1. Go to the lab repo and download the ZIP:
    ```
    https://github.com/anuj34822/java-modernization-lab
    ```
    Click **Code → Download ZIP** and extract it to your **Documents** folder.
 
-2. Open **IBM Bob IDE**. You will see the Welcome screen.
+![GitHub repo showing Code → Download ZIP](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image2.png)
 
-![Bob IDE Welcome screen](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image2.png)
+2. Open **IBM Bob IDE**. You will see the Welcome screen. Click **Open...** from the Start menu.
 
-3. Click **Open...** from the Start menu and navigate to the extracted `java-modernization-lab` folder. Click **Open**.
+![Bob IDE Welcome screen with Open highlighted](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image3.png)
 
-![Opening the project folder in Bob](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image3.png)
+3. Navigate to the extracted `java-modernization-lab` folder and click **Open**.
 
-4. The Explorer panel on the left shows the project. Confirm you can see:
+![Folder picker showing java-modernization-lab selected](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image4.png)
+
+4. Bob may show a **Restricted Mode** banner at the top. Click **Manage** and select **Trust the authors of all files in the parent folder** to enable full features.
+
+![Restricted Mode banner with Manage highlighted](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image5.png)
+
+5. The Explorer panel on the left shows the project. Confirm you can see:
 
    ```
    java-modernization-lab/
@@ -137,7 +143,7 @@ You need this to preview the diagrams Bob generates in Step 2.
    └── lab-guide.md
    ```
 
-![Bob Explorer panel showing the correct folder structure with .bob/ highlighted](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image4.png)
+![Bob Explorer panel showing the correct folder structure with .bob/ highlighted](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image6.png)
 
    > **Notice the `.bob/` folder** — this contains the custom Mode, Skill, and all 6 Rule files that power this lab. You get everything pre-configured just by downloading. Nothing to set up manually.
 
@@ -149,31 +155,31 @@ You need this to preview the diagrams Bob generates in Step 2.
 
 1. Click the mode selector at the bottom-right of Bob IDE and select **Ask**
 
-![Mode selector at bottom-right with Ask highlighted](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image5.png)
+![Mode selector at bottom-right with Ask highlighted](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image7.png)
 
 2. Type this prompt in the chat and click the **Enhance Prompt** icon (✨) before hitting Enter:
 
    > *"Help me understand this legacy-netbanking application. Save the generated documentation and diagrams in legacy-netbanking-documentation directory. Make sure to generate required PlantUML diagrams like sequence diagram along with mermaid architecture and ER diagram etc of current implementation."*
 
-![Chat input showing the prompt typed with the Enhance Prompt icon highlighted](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image6.png)
+![Chat input showing the prompt typed with the Enhance Prompt icon highlighted](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image8.png)
 
 3. Bob rewrites your prompt into a more detailed version. Review it and press **Enter**
 
-![Bob's enhanced version of the prompt shown in the chat](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image7.png)
+![Bob's enhanced version of the prompt shown in the chat](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image9.png)
 
 4. Bob creates a task list and starts working. Click **Approve** for each task as it appears
 
-![Bob's task list running the reverse engineering with Approve buttons](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image8.png)
+![Bob's task list running the reverse engineering with Approve buttons](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image10.png)
 
 5. When Bob finishes, right-click the generated `.md` file in Explorer and select **Open Preview**
 
-![Right-click context menu on the generated .md file showing Open Preview](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image9.png)
+![Right-click context menu on the generated .md file showing Open Preview](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image11.png)
 
-![Generated documentation rendered in the Preview panel](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image10.png)
+![Generated documentation rendered in the Preview panel](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image12.png)
 
 6. Right-click any `.puml` file and select **Preview PlantUML File** to see the diagrams
 
-![Right-click context menu on a .puml file showing Preview PlantUML File](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image11.png)
+![Right-click context menu on a .puml file showing Preview PlantUML File](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image13.png)
 
 ---
 
@@ -233,13 +239,13 @@ Before you run anything, open `.bob/skills/java-upgrade/SKILL.md` and read it. Y
 
 1. In the Bob chat, type `/java-upgrade` and press **Enter**
 
-![Bob chat showing /java-upgrade typed and Bob activating the skill](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image12.png)
+![Bob chat showing /java-upgrade typed and Bob activating the skill](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image14.png)
 
 2. Bob asks you to confirm two things:
    - Project path → type `legacy-netbanking`
    - Target Java version → type `17`
 
-![Bob asking to confirm the project path and target Java version](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image13.png)
+![Bob asking to confirm the project path and target Java version](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image15.png)
 
 3. Bob works through the upgrade automatically. Approve each task as it appears:
    - Updates `pom.xml` compiler settings to Java 17
@@ -248,11 +254,11 @@ Before you run anything, open `.bob/skills/java-upgrade/SKILL.md` and read it. Y
    - Fixes any dependency conflicts
    - Runs `mvn clean package` to validate the build
 
-![Bob's task list for the java-upgrade skill showing pom.xml edit, mvn rewrite:run, and build validation steps](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image14.png)
+![Bob's task list for the java-upgrade skill showing pom.xml edit, mvn rewrite:run, and build validation steps](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image16.png)
 
 4. When complete, Bob creates `legacy-netbanking/java-upgrade-report.md`. Open it in Preview to see the Mermaid flowchart of every change applied
 
-![java-upgrade-report.md open in Preview showing the Mermaid audit flowchart](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image15.png)
+![java-upgrade-report.md open in Preview showing the Mermaid audit flowchart](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image17.png)
 
 ---
 
@@ -268,31 +274,31 @@ This step uses the **Modernization Architect** custom mode backed by 6 rule file
 
 1. Click the gear icon (⚙) at the bottom-left of Bob IDE → select **Modes**
 
-![Bob IDE Settings menu showing the Modes option](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image16.png)
+![Bob IDE Settings menu showing the Modes option](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image18.png)
 
 2. Find **Modernization Architect** in the list and open it
 
-![Modes list with Modernization Architect visible](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image17.png)
+![Modes list with Modernization Architect visible](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image19.png)
 
 3. Read the Role Definition — this is the text that tells Bob how to think and behave during migration
 
-![Role Definition text of the Modernization Architect custom mode](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image18.png)
+![Role Definition text of the Modernization Architect custom mode](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image20.png)
 
 **Step B — Explore the Rules**
 
 4. In the Explorer panel, expand `.bob/rules-modernization-architect/` — you will see 6 XML files
 
-![Explorer panel showing .bob/rules-modernization-architect/ expanded with all 6 XML files listed](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image19.png)
+![Explorer panel showing .bob/rules-modernization-architect/ expanded with all 6 XML files listed](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image21.png)
 
 5. Open one of them — you will see how architecture decisions and migration constraints are written in plain XML. This is what makes Bob's output consistent and governed — not just smart, but bounded by your standards
 
-![One of the rule XML files open in the editor showing its structure](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image20.png)
+![One of the rule XML files open in the editor showing its structure](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image22.png)
 
 **Step C — Run the Migration**
 
 6. Click the mode selector at the bottom-right and select **Modernization Architect**
 
-![Mode selector at bottom-right showing Modernization Architect selected](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image21.png)
+![Mode selector at bottom-right showing Modernization Architect selected](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image23.png)
 
 7. Type this prompt and press **Enter**:
 
@@ -300,11 +306,11 @@ This step uses the **Modernization Architect** custom mode backed by 6 rule file
 
 8. Bob produces a Todo list covering the full migration. Approve each task as it runs
 
-![Bob's Todo list for the full modernization showing all migration phases](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image22.png)
+![Bob's Todo list for the full modernization showing all migration phases](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image24.png)
 
 9. When complete, the Explorer panel shows a new `modern-netbanking/` folder with the fully migrated project
 
-![Explorer panel showing the new modern-netbanking/ folder structure after migration](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image23.png)
+![Explorer panel showing the new modern-netbanking/ folder structure after migration](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image25.png)
 
 > If Bob stops mid-way, type: *"Complete remaining tasks from the todo list"*
 
@@ -318,9 +324,9 @@ Still in **Modernization Architect** mode, type:
 
 Bob generates a `Dockerfile`, Kubernetes YAML manifests, and a `deploy.sh` script.
 
-![Explorer showing the generated Dockerfile, Kubernetes manifests, and deploy.sh](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image24.png)
+![Explorer showing the generated Dockerfile, Kubernetes manifests, and deploy.sh](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image26.png)
 
-![Generated Dockerfile or Kubernetes manifest open in the editor](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image25.png)
+![Generated Dockerfile or Kubernetes manifest open in the editor](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image27.png)
 
 ---
 
@@ -343,7 +349,7 @@ Bob generates a `Dockerfile`, Kubernetes YAML manifests, and a `deploy.sh` scrip
 ### Maven not installed
 Switch to **Agent** mode and type: *"Install Maven"*
 
-![Agent mode chat with Install Maven typed](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image26.png)
+![Agent mode chat with Install Maven typed](https://raw.githubusercontent.com/anuj34822/java-modernization-lab/main/images/image28.png)
 
 ### Build fails during migration
 Click **Fix it** next to the error. Bob reads the failure and applies a targeted fix automatically.
