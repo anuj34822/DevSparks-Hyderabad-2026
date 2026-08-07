@@ -76,11 +76,11 @@ This is a legacy NetBanking application built on:
 
 Before you start, identify the three Bob assets used throughout the lab:
 
-| Asset | What it teaches | Where it lives |
-|---|---|---|
-| **Custom Mode** | How to give Bob a reusable persona and operating model | `.bob/custom_modes.yaml` |
-| **Skill** | How to encode a repeatable workflow that can be invoked with a slash command | `.bob/skills/java-upgrade/SKILL.md` |
-| **Rule** | How to constrain Bob with explicit modernization standards | `.bob/rules-modernization-architect/` |
+| Asset | What it teaches | Where it lives | Learn more |
+|---|---|---|---|
+| **Custom Mode** | How to give Bob a reusable persona and operating model | `.bob/custom_modes.yaml` | Learn more about custom modes |
+| **Skill** | How to encode a repeatable workflow that can be invoked with a slash command | `.bob/skills/java-upgrade/SKILL.md` | Learn more about skills |
+| **Rule** | How to constrain Bob with explicit modernization standards | `.bob/rules-modernization-architect/` | Learn more about rules |
 
 > For the workshop, keep your attention on **one custom mode, one skill, and one representative rule**. The rest of the files are supporting implementation details.
 
